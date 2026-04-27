@@ -1,7 +1,7 @@
 <h1 align="center">EYDII</h1>
 
 <p align="center">
-  <strong>Your AI agents are drifting right now. You just can't see it.</strong>
+  <strong>The trust layer for autonomous systems.</strong>
 </p>
 
 <p align="center">
@@ -14,24 +14,31 @@
 
 <p align="center">
   Trustless infrastructure for autonomous systems.<br />
-  Content-blind, mathematical behavioral intelligence for AI agents.
+  Content-blind, mathematical behavioral intelligence — from AI agents to robots to power plants.
 </p>
 
 ---
 
 ## The Problem
 
-AI agents are not software. They are neural systems. They interpret, improvise, and drift.
+Autonomous systems are not software. They are neural, adaptive, and unpredictable. An AI agent writing code, a robot picking orders in a warehouse, a controller managing coolant flow in a nuclear facility — they all share the same failure mode: **silent drift**. They don't crash. They don't throw errors. They gradually deviate from what they were supposed to do, and nobody sees it until something breaks.
 
-Traditional security answers one question: **"Who has access?"** It checks credentials, rotates keys, scans payloads. It was built for software that executes the same instruction the same way every time.
+Traditional security answers one question: **"Who has access?"** It checks credentials, rotates keys, scans payloads. It was built for deterministic software — programs that execute the same instruction the same way every time.
 
-Agents don't work that way. An agent that passed every test yesterday can silently expand its own scope today -- reading files it was never meant to touch, calling tools in sequences no one anticipated, escalating its own authority one action at a time. No credentials were stolen. No vulnerability was exploited. The agent simply **drifted**.
+Autonomous systems don't work that way. An AI agent silently expands its scope. A warehouse robot subtly changes its path optimization. An industrial controller drifts its operating parameters by fractions of a degree per hour. No credentials were stolen. No vulnerability was exploited. The system simply **drifted**.
 
-You will not see it in your logs. You will not see it in your access controls. You will see it when something breaks.
+You will not see it in your access controls. You will not see it in your firewall logs. In healthcare, defense, pharmaceuticals, and industrial infrastructure — the environments where autonomous systems carry the highest stakes — you cannot even inspect the content to look for problems. Privacy law, classification, and regulatory compliance make content inspection illegal.
 
-**EYDII is the trust layer that sees it.**
+**EYDII is the trust layer built for exactly this.**
 
-It monitors what agents **do** -- action types, timing, frequency, behavioral patterns -- without ever seeing what they say, produce, or read. Content-blind by architecture, not by policy. Trustless by design, not by promise. Mathematical proof that behavior matches intent, or proof that it doesn't.
+It monitors what autonomous systems **do** — action types, timing, frequency, behavioral patterns — without ever seeing what they say, produce, or access. Content-blind by architecture, not by configuration. Trustless by design, not by promise. Mathematical proof that behavior matches intent, or proof that it doesn't.
+
+## Where It Matters
+
+- **AI Agents** — Coding agents, research agents, multi-agent organizations across 30+ frameworks
+- **Physical AI / Robotics** — Warehouse robots, surgical systems, autonomous vehicles, manufacturing floors
+- **Industrial Autonomous Systems** — Power plants, railway control, water treatment, pharmaceutical manufacturing
+- **Regulated Environments** — HIPAA, ITAR, defense, financial services — where content inspection is forbidden by law
 
 ## How It Works
 
@@ -193,7 +200,7 @@ eydii/
 
 ## Architecture
 
-EYDII is designed for environments where content inspection is **forbidden** -- healthcare, defense, multi-tenant SaaS, financial services, industrial systems. Where HIPAA, ITAR, or organizational policy makes reading agent outputs a compliance violation, EYDII operates without compromise because there is nothing to compromise. The architecture eliminates the attack surface that content-aware systems create.
+EYDII was built for environments where content inspection is **forbidden** — healthcare, defense, pharmaceuticals, industrial control, multi-tenant SaaS, financial services. Where HIPAA, ITAR, classification rules, or regulatory compliance makes reading system outputs a legal violation, EYDII operates without compromise because there is nothing to compromise. The same architecture that monitors an AI agent writing code monitors a robot picking orders in a warehouse and a controller managing coolant in a power plant. Only the sidecar connector changes.
 
 Seven patent applications cover the trust layer architecture, behavioral drift detection, mathematical attestation, and content-blind trust methods.
 
