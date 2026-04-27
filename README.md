@@ -209,7 +209,7 @@ Seven patent applications cover the trust layer architecture, behavioral drift d
 | | |
 |---|---|
 | **EYDII Platform** | [id.veritera.ai](https://id.veritera.ai) |
-| **ROAM** (Agent orchestration) | [github.com/veritera-ai/roam](https://github.com/veritera-ai/roam) |
+| **ROAM** (Agentic OS) | [github.com/veritera-ai/roam](https://github.com/veritera-ai/roam) |
 | **Veritera Corporation** | [veritera.ai](https://veritera.ai) |
 | **Documentation** | [docs/](docs/) |
 
