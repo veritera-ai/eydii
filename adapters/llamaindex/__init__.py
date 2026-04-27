@@ -1,22 +1,22 @@
-"""Forge Verify tools for LlamaIndex.
+"""EYDII tools for LlamaIndex.
 
 Two integration points:
 
-1. ForgeVerifyToolSpec — a BaseToolSpec bundle with verify, proof, and health tools
-2. ForgeEventHandler — instrumentation handler that audits agent tool calls
+1. EydiiVerifyToolSpec — a BaseToolSpec bundle with verify, proof, and health tools
+2. EydiiEventHandler — instrumentation handler that audits agent tool calls
 
 Usage:
-    from forge_llamaindex import ForgeVerifyToolSpec
+    from eydii_llamaindex import EydiiVerifyToolSpec
 
-    spec = ForgeVerifyToolSpec(policy="finance-controls")
+    spec = EydiiVerifyToolSpec(policy="finance-controls")
     tools = spec.to_tool_list()
     agent = FunctionAgent(tools=tools, llm=llm)
 """
 
 __version__ = "0.2.0"
 
-from .tool_spec import ForgeVerifyToolSpec
-from .event_handler import ForgeEventHandler
-from .execute import ForgeExecuteHandler
+from .tool_spec import EydiiVerifyToolSpec
+from .event_handler import EydiiEventHandler
+from .execute import EydiiExecuteHandler
 
-__all__ = ["ForgeVerifyToolSpec", "ForgeEventHandler", "ForgeExecuteHandler"]
+__all__ = ["EydiiVerifyToolSpec", "EydiiEventHandler", "EydiiExecuteHandler"]

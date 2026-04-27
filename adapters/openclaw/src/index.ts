@@ -1,28 +1,28 @@
 /**
- * Forge OpenClaw Skill
+ * EYDII OpenClaw Skill
  * ===================
  * Verification skill for OpenClaw agents.
- * Intercepts every tool call and verifies it through Forge before execution.
+ * Intercepts every tool call and verifies it through EYDII before execution.
  *
  * Usage:
- *   import { ForgeSkill } from "@veritera.ai/forge-openclaw"
+ *   import { EydiiSkill } from "@veritera.ai/eydii-openclaw"
  *
- *   const skill = new ForgeSkill({ apiKey: "vt_live_..." })
+ *   const skill = new EydiiSkill({ apiKey: "vt_live_..." })
  *   agent.addSkill(skill)
  *
  * Every action your agent takes is now verified before execution.
  * Blocked actions never reach your tools.
  */
 
-import { Veritera as Forge } from "@veritera.ai/forge-verify";
-import type { VerifyResponse } from "@veritera.ai/forge-verify";
+import { Veritera as EydiiClient } from "@veritera.ai/eydii";
+import type { VerifyResponse } from "@veritera.ai/eydii";
 
 // ── Types ──
 
-export interface ForgeSkillConfig {
-  /** Forge API key (vt_live_... or vt_test_...) */
+export interface EydiiSkillConfig {
+  /** EYDII API key (vt_live_... or vt_test_...) */
   apiKey: string;
-  /** Base URL for Forge API (default: https://forge.veritera.ai) */
+  /** Base URL for EYDII API (default: https://id.veritera.ai) */
   baseUrl?: string;
   /** Policy name to evaluate against (optional) */
   policy?: string;
@@ -52,28 +52,28 @@ export interface SkillResult {
   reason?: string | null;
 }
 
-// ── Forge OpenClaw Skill ──
+// ── EYDII OpenClaw Skill ──
 
-export class ForgeSkill {
-  private forge: InstanceType<typeof Forge>;
+export class EydiiSkill {
+  private eydii: InstanceType<typeof EydiiClient>;
   private policy: string | undefined;
   private agentId: string;
   private skipActions: Set<string>;
-  private onBlocked?: ForgeSkillConfig["onBlocked"];
-  private onVerified?: ForgeSkillConfig["onVerified"];
+  private onBlocked?: EydiiSkillConfig["onBlocked"];
+  private onVerified?: EydiiSkillConfig["onVerified"];
   private debug: boolean;
 
   /** Skill metadata for OpenClaw registration */
-  static readonly skillName = "forge-verify";
+  static readonly skillName = "eydii";
   static readonly version = "1.1.2";
-  static readonly description = "Forge verification — verifies every action before execution";
+  static readonly description = "EYDII verification — verifies every action before execution";
 
-  constructor(config: ForgeSkillConfig) {
+  constructor(config: EydiiSkillConfig) {
     if (!config.apiKey) {
-      throw new Error("Forge OpenClaw Skill: apiKey is required");
+      throw new Error("EYDII OpenClaw Skill: apiKey is required");
     }
 
-    this.forge = new Forge({
+    this.eydii = new EydiiClient({
       apiKey: config.apiKey,
       baseUrl: config.baseUrl,
     });
@@ -97,12 +97,12 @@ export class ForgeSkill {
 
     // Skip verification for whitelisted actions
     if (this.skipActions.has(action)) {
-      if (this.debug) console.log(`[Forge] Skipping verification for: ${action}`);
+      if (this.debug) console.log(`[EYDII] Skipping verification for: ${action}`);
       return { verified: true, action };
     }
 
     try {
-      const result = await this.forge.verifyDecision({
+      const result = await this.eydii.verifyDecision({
         agentId: this.agentId,
         action,
         params: (toolCall.arguments ?? {}) as Record<string, unknown>,
@@ -110,7 +110,7 @@ export class ForgeSkill {
       });
 
       if (this.debug) {
-        console.log(`[Forge] ${result.verified ? "✔ VERIFIED" : "✗ BLOCKED"}: ${action} (${result.latencyMs}ms)`);
+        console.log(`[EYDII] ${result.verified ? "✔ VERIFIED" : "✗ BLOCKED"}: ${action} (${result.latencyMs}ms)`);
       }
 
       if (result.verified) {
@@ -129,7 +129,7 @@ export class ForgeSkill {
     } catch (err) {
       // Fail-closed: if verification service is unreachable, block the action
       if (this.debug) {
-        console.error(`[Forge] Verification failed for ${action}:`, err);
+        console.error(`[EYDII] Verification failed for ${action}:`, err);
       }
       return {
         verified: false,
@@ -177,18 +177,18 @@ export class ForgeSkill {
       }
 
       // Attach verification result to request for downstream use
-      req.forgeVerification = result;
+      req.eydiiVerification = result;
       next();
     };
   }
 
   /**
-   * Get the Forge client instance for direct API access.
+   * Get the EYDII client instance for direct API access.
    */
-  getClient(): InstanceType<typeof Forge> {
-    return this.forge;
+  getClient(): InstanceType<typeof EydiiClient> {
+    return this.eydii;
   }
 }
 
 // Default export for convenience
-export default ForgeSkill;
+export default EydiiSkill;

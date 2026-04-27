@@ -1,16 +1,16 @@
-"""Forge Execute receipt middleware for Agno (formerly Phidata).
+"""EYDII Execute receipt middleware for Agno (formerly Phidata).
 
 Automatically signs and submits receipts when Agno tools are invoked.
 
 Usage:
-    from forge_agno import ForgeExecuteHook, forge_execute_wrapper
+    from eydii_agno import EydiiExecuteHook, eydii_execute_wrapper
 
     # Option 1: Hook for manual receipt emission
-    hook = ForgeExecuteHook(task_id="task_abc...", agent_id="research-agent")
+    hook = EydiiExecuteHook(task_id="task_abc...", agent_id="research-agent")
     hook.on_tool_use("file_read")
 
     # Option 2: Decorator that wraps a tool function with receipt emission
-    @forge_execute_wrapper(task_id="task_abc...", agent_id="research-agent")
+    @eydii_execute_wrapper(task_id="task_abc...", agent_id="research-agent")
     def send_payment(amount: float, recipient: str) -> str:
         return process_payment(amount, recipient)
 """
@@ -23,21 +23,21 @@ import logging
 import os
 from typing import Any, Callable, Optional
 
-from veritera import Forge, ReceiptSigner
+from veritera import Eydii, EydiiSigner
 
-logger = logging.getLogger("forge_agno.execute")
+logger = logging.getLogger("eydii_agno.execute")
 
 
-class ForgeExecuteHook:
+class EydiiExecuteHook:
     """Hook that emits signed receipts for every tool invocation.
 
     Attach this to your Agno workflow to automatically track execution.
 
     Usage::
 
-        from forge_agno import ForgeExecuteHook
+        from eydii_agno import EydiiExecuteHook
 
-        hook = ForgeExecuteHook(task_id="task_abc...", agent_id="research-agent")
+        hook = EydiiExecuteHook(task_id="task_abc...", agent_id="research-agent")
         # Call hook.on_tool_use("file_read") whenever a tool is invoked
     """
 
@@ -52,8 +52,8 @@ class ForgeExecuteHook:
         self.task_id = task_id
         self.agent_id = agent_id
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
-        self._client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-        self._signer = ReceiptSigner(signing_key=signing_key or key)
+        self._client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+        self._signer = EydiiSigner(signing_key=signing_key or key)
 
     def on_tool_use(self, action_type: str) -> dict:
         """Call this when a tool is invoked. Signs and submits a receipt.
@@ -79,36 +79,36 @@ class ForgeExecuteHook:
         return await loop.run_in_executor(None, self.on_tool_use, action_type)
 
 
-def forge_execute_wrapper(
+def eydii_execute_wrapper(
     task_id: str,
     agent_id: str,
     api_key: Optional[str] = None,
     signing_key: Optional[str] = None,
     base_url: str = "https://veritera.ai",
 ) -> Callable:
-    """Decorator that wraps an Agno tool function with Forge Execute receipt emission.
+    """Decorator that wraps an Agno tool function with EYDII Execute receipt emission.
 
     After the wrapped function executes successfully, a signed receipt is
-    automatically submitted to the Forge Execute API.
+    automatically submitted to the EYDII Execute API.
 
     Usage::
 
-        from forge_agno import forge_execute_wrapper
+        from eydii_agno import eydii_execute_wrapper
 
-        @forge_execute_wrapper(task_id="task_abc...", agent_id="research-agent")
+        @eydii_execute_wrapper(task_id="task_abc...", agent_id="research-agent")
         def send_payment(amount: float, recipient: str) -> str:
             return process_payment(amount, recipient)
 
     Args:
         task_id: The task identifier for receipt tracking.
         agent_id: The agent identifier for receipt tracking.
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
         signing_key: Key for signing receipts (defaults to api_key).
-        base_url: Forge API endpoint.
+        base_url: EYDII API endpoint.
     """
     key = api_key or os.environ.get("VERITERA_API_KEY", "")
-    client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-    signer = ReceiptSigner(signing_key=signing_key or key)
+    client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+    signer = EydiiSigner(signing_key=signing_key or key)
 
     def decorator(func: Callable) -> Callable:
         action_name = func.__name__

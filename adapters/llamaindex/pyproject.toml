@@ -1,12 +1,12 @@
 [project]
-name = "llama-index-tools-forge"
+name = "llama-index-tools-eydii"
 version = "0.2.1"
-description = "Forge Verify + Execute tools for LlamaIndex — verify agent actions and track executions with cryptographic receipts"
+description = "EYDII + Execute tools for LlamaIndex — verify agent actions and track executions with cryptographic receipts"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [{name = "Veritera AI", email = "engineering@veritera.ai"}]
-keywords = ["veritera", "forge", "llamaindex", "llama-index", "verification", "guardrail", "ai-safety"]
+keywords = ["veritera", "eydii", "llamaindex", "llama-index", "verification", "guardrail", "ai-safety"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -21,9 +21,9 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://forge.veritera.ai"
-Documentation = "https://forge.veritera.ai/docs"
-Repository = "https://github.com/veritera-ai/forge-llamaindex"
+Homepage = "https://id.veritera.ai"
+Documentation = "https://id.veritera.ai/docs"
+Repository = "https://github.com/veritera-ai/eydii-llamaindex"
 
 [project.optional-dependencies]
 dev = [
@@ -35,7 +35,7 @@ requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["forge_llamaindex*", "llama_index_tools_forge*"]
+include = ["eydii_llamaindex*", "llama_index_tools_eydii*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

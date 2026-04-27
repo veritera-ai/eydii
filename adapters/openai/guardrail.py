@@ -1,7 +1,7 @@
-"""Forge Verify guardrails for OpenAI Agents SDK.
+"""EYDII guardrails for OpenAI Agents SDK.
 
 Provides ToolInputGuardrail (pre-tool) and InputGuardrail (pre-agent)
-that call the Forge /v1/verify API before execution proceeds.
+that call the EYDII /v1/verify API before execution proceeds.
 """
 
 from __future__ import annotations
@@ -12,7 +12,7 @@ import logging
 import os
 from typing import Any, Optional
 
-from veritera import Forge
+from veritera import Eydii
 
 from agents import (
     Agent,
@@ -25,18 +25,18 @@ from agents import (
     ToolGuardrailFunctionOutput,
 )
 
-logger = logging.getLogger("forge_openai")
+logger = logging.getLogger("eydii_openai")
 
 
-class ForgeGuardrail:
-    """Configurable Forge verification client for OpenAI Agents SDK.
+class EydiiGuardrail:
+    """Configurable EYDII verification client for OpenAI Agents SDK.
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
-        base_url: Forge API endpoint.
-        agent_id: Identifier for this agent in Forge audit logs.
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
+        base_url: EYDII API endpoint.
+        agent_id: Identifier for this agent in EYDII audit logs.
         policy: Default policy to evaluate against.
-        fail_closed: If True (default), deny actions when Forge API is unreachable.
+        fail_closed: If True (default), deny actions when EYDII API is unreachable.
         timeout: Request timeout in seconds.
         skip_actions: Tool names to skip verification for (e.g. read-only tools).
         on_verified: Callback(action, result) when a tool call is approved.
@@ -46,7 +46,7 @@ class ForgeGuardrail:
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = "https://forge.veritera.ai",
+        base_url: str = "https://id.veritera.ai",
         agent_id: str = "openai-agent",
         policy: Optional[str] = None,
         fail_closed: bool = True,
@@ -58,9 +58,9 @@ class ForgeGuardrail:
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
         if not key:
             raise ValueError(
-                "Forge API key required. Pass api_key= or set VERITERA_API_KEY env var."
+                "EYDII API key required. Pass api_key= or set VERITERA_API_KEY env var."
             )
-        self._client = Forge(
+        self._client = Eydii(
             api_key=key,
             base_url=base_url,
             timeout=timeout,
@@ -74,13 +74,13 @@ class ForgeGuardrail:
         self.on_blocked = on_blocked
 
     def tool_guardrail(self, policy_override: Optional[str] = None) -> ToolInputGuardrail:
-        """Create a ToolInputGuardrail that verifies each tool call through Forge.
+        """Create a ToolInputGuardrail that verifies each tool call through EYDII.
 
         Attach to individual tools:
             @function_tool(tool_input_guardrails=[guard.tool_guardrail()])
             def send_email(...): ...
 
-        Or use forge_protect() to attach to multiple tools at once.
+        Or use eydii_protect() to attach to multiple tools at once.
 
         Args:
             policy_override: If provided, this guardrail uses this policy
@@ -111,7 +111,7 @@ class ForgeGuardrail:
             except (json.JSONDecodeError, TypeError):
                 params = {"raw": data.context.tool_arguments}
 
-            # Call Forge /v1/verify
+            # Call EYDII /v1/verify
             try:
                 result = await self._client.verify_decision(
                     agent_id=self.agent_id,
@@ -120,7 +120,7 @@ class ForgeGuardrail:
                     policy=effective_policy,
                 )
             except Exception as exc:
-                logger.error("Forge verify error for %s: %s", tool_name, exc)
+                logger.error("EYDII verify error for %s: %s", tool_name, exc)
                 if self.fail_closed:
                     if self.on_blocked:
                         self.on_blocked(tool_name, str(exc), None)
@@ -133,7 +133,7 @@ class ForgeGuardrail:
                 )
 
             if result.verified:
-                logger.debug("Forge APPROVED: %s (proof=%s)", tool_name, result.proof_id)
+                logger.debug("EYDII APPROVED: %s (proof=%s)", tool_name, result.proof_id)
                 if self.on_verified:
                     self.on_verified(tool_name, result)
                 return ToolGuardrailFunctionOutput.allow(
@@ -145,11 +145,11 @@ class ForgeGuardrail:
                 )
 
             reason = result.reason or "Policy violation"
-            logger.warning("Forge DENIED: %s — %s", tool_name, reason)
+            logger.warning("EYDII DENIED: %s — %s", tool_name, reason)
             if self.on_blocked:
                 self.on_blocked(tool_name, reason, result)
             return ToolGuardrailFunctionOutput.reject_content(
-                message=f"Action '{tool_name}' denied by Forge: {reason}",
+                message=f"Action '{tool_name}' denied by EYDII: {reason}",
                 output_info={
                     "verified": False,
                     "reason": reason,
@@ -160,11 +160,11 @@ class ForgeGuardrail:
 
         return ToolInputGuardrail(
             guardrail_function=_verify_tool,
-            name="forge_verify",
+            name="eydii_verify",
         )
 
     def input_guardrail(self) -> InputGuardrail:
-        """Create an InputGuardrail that screens agent input through Forge.
+        """Create an InputGuardrail that screens agent input through EYDII.
 
         Useful for blocking entire conversation turns based on policy.
         """
@@ -188,7 +188,7 @@ class ForgeGuardrail:
                     tripwire_triggered=not result.verified,
                 )
             except Exception as exc:
-                logger.error("Forge input guardrail error: %s", exc)
+                logger.error("EYDII input guardrail error: %s", exc)
                 return GuardrailFunctionOutput(
                     output_info={"error": str(exc)},
                     tripwire_triggered=self.fail_closed,
@@ -196,11 +196,11 @@ class ForgeGuardrail:
 
         return InputGuardrail(
             guardrail_function=_screen_input,
-            name="forge_input_screen",
+            name="eydii_input_screen",
         )
 
     def protect(self, *tools: FunctionTool, policy: Optional[str] = None) -> list[FunctionTool]:
-        """Attach Forge guardrail to multiple tools at once.
+        """Attach EYDII guardrail to multiple tools at once.
 
         Returns new tool instances — originals are not mutated.
         """
@@ -219,9 +219,9 @@ class ForgeGuardrail:
 # ── Convenience functions ──
 
 
-def forge_tool_guardrail(
+def eydii_tool_guardrail(
     api_key: Optional[str] = None,
-    base_url: str = "https://forge.veritera.ai",
+    base_url: str = "https://id.veritera.ai",
     agent_id: str = "openai-agent",
     policy: Optional[str] = None,
     fail_closed: bool = True,
@@ -230,17 +230,17 @@ def forge_tool_guardrail(
     on_verified: Optional[Any] = None,
     on_blocked: Optional[Any] = None,
 ) -> ToolInputGuardrail:
-    """Create a ToolInputGuardrail that verifies tool calls through Forge.
+    """Create a ToolInputGuardrail that verifies tool calls through EYDII.
 
     Usage:
-        guardrail = forge_tool_guardrail(policy="finance-controls")
+        guardrail = eydii_tool_guardrail(policy="finance-controls")
 
         @function_tool(tool_input_guardrails=[guardrail])
         def send_payment(amount: float, recipient: str) -> str:
             \"\"\"Send a payment.\"\"\"
             return process_payment(amount, recipient)
     """
-    guard = ForgeGuardrail(
+    guard = EydiiGuardrail(
         api_key=api_key,
         base_url=base_url,
         agent_id=agent_id,
@@ -254,23 +254,23 @@ def forge_tool_guardrail(
     return guard.tool_guardrail()
 
 
-def forge_input_guardrail(
+def eydii_input_guardrail(
     api_key: Optional[str] = None,
-    base_url: str = "https://forge.veritera.ai",
+    base_url: str = "https://id.veritera.ai",
     agent_id: str = "openai-agent",
     policy: Optional[str] = None,
     fail_closed: bool = True,
 ) -> InputGuardrail:
-    """Create an InputGuardrail that screens agent input through Forge.
+    """Create an InputGuardrail that screens agent input through EYDII.
 
     Usage:
         agent = Agent(
             name="my-agent",
-            input_guardrails=[forge_input_guardrail(policy="content-policy")],
+            input_guardrails=[eydii_input_guardrail(policy="content-policy")],
             tools=[...],
         )
     """
-    guard = ForgeGuardrail(
+    guard = EydiiGuardrail(
         api_key=api_key,
         base_url=base_url,
         agent_id=agent_id,
@@ -280,28 +280,28 @@ def forge_input_guardrail(
     return guard.input_guardrail()
 
 
-def forge_protect(
+def eydii_protect(
     *tools: FunctionTool,
     api_key: Optional[str] = None,
-    base_url: str = "https://forge.veritera.ai",
+    base_url: str = "https://id.veritera.ai",
     agent_id: str = "openai-agent",
     policy: Optional[str] = None,
     fail_closed: bool = True,
     timeout: float = 10.0,
     skip_actions: Optional[list[str]] = None,
 ) -> list[FunctionTool]:
-    """Attach Forge verification to multiple tools at once.
+    """Attach EYDII verification to multiple tools at once.
 
     Usage:
         agent = Agent(
             name="finance-bot",
-            tools=forge_protect(
+            tools=eydii_protect(
                 send_payment, read_balance, delete_record,
                 policy="finance-controls",
             ),
         )
     """
-    guard = ForgeGuardrail(
+    guard = EydiiGuardrail(
         api_key=api_key,
         base_url=base_url,
         agent_id=agent_id,

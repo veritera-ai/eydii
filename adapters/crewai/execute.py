@@ -1,24 +1,24 @@
-"""Forge Execute receipt middleware for CrewAI.
+"""EYDII Execute receipt middleware for CrewAI.
 
 Automatically signs and submits receipts when CrewAI tools are invoked.
 
 Usage:
-    from forge_crewai import forge_execute_task_wrapper
+    from eydii_crewai import eydii_execute_task_wrapper
 
     # Wrap a task to automatically emit receipts
     task = Task(
         description="Run all unit tests",
         agent=test_agent,
-        guardrail=forge_execute_task_wrapper(
+        guardrail=eydii_execute_task_wrapper(
             task_id="task_abc...",
             agent_id="test-agent",
         ),
     )
 
 Or use the lower-level receipt hook:
-    from forge_crewai import ForgeExecuteHook
+    from eydii_crewai import EydiiExecuteHook
 
-    hook = ForgeExecuteHook(task_id="task_abc...", agent_id="test-agent")
+    hook = EydiiExecuteHook(task_id="task_abc...", agent_id="test-agent")
     # Call hook.on_tool_use("file_read") whenever a tool is invoked
 """
 
@@ -28,12 +28,12 @@ import logging
 import os
 from typing import Any, Optional, Tuple
 
-from veritera import Forge, ReceiptSigner
+from veritera import Eydii, EydiiSigner
 
-logger = logging.getLogger("forge_crewai.execute")
+logger = logging.getLogger("eydii_crewai.execute")
 
 
-class ForgeExecuteHook:
+class EydiiExecuteHook:
     """Hook that emits signed receipts for every tool invocation.
 
     Attach this to your CrewAI workflow to automatically track execution.
@@ -45,13 +45,13 @@ class ForgeExecuteHook:
         agent_id: str,
         api_key: Optional[str] = None,
         signing_key: Optional[str] = None,
-        base_url: str = "https://forge.veritera.ai",
+        base_url: str = "https://id.veritera.ai",
     ):
         self.task_id = task_id
         self.agent_id = agent_id
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
-        self._client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-        self._signer = ReceiptSigner(signing_key=signing_key or key)
+        self._client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+        self._signer = EydiiSigner(signing_key=signing_key or key)
 
     def on_tool_use(self, action_type: str) -> dict:
         """Call this when a tool is invoked. Signs and submits a receipt.
@@ -68,24 +68,24 @@ class ForgeExecuteHook:
             return {"error": str(exc)}
 
 
-def forge_execute_task_wrapper(
+def eydii_execute_task_wrapper(
     task_id: str,
     agent_id: str,
     api_key: Optional[str] = None,
     signing_key: Optional[str] = None,
-    base_url: str = "https://forge.veritera.ai",
+    base_url: str = "https://id.veritera.ai",
 ):
     """Create a CrewAI task guardrail that emits an Execute receipt on completion.
 
-    Combines Forge Verify guardrail with Execute receipt emission.
+    Combines EYDII guardrail with Execute receipt emission.
     On task completion, signs and submits a 'task.complete' receipt,
-    then validates output through Forge Verify policies.
+    then validates output through EYDII policies.
 
     Returns a function with signature (TaskOutput) -> (bool, Any).
     """
     key = api_key or os.environ.get("VERITERA_API_KEY", "")
-    client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-    signer = ReceiptSigner(signing_key=signing_key or key)
+    client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+    signer = EydiiSigner(signing_key=signing_key or key)
 
     def _guardrail(result: Any) -> Tuple[bool, Any]:
         output_text = result.raw if hasattr(result, "raw") else str(result)

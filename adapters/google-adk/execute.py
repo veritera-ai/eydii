@@ -1,16 +1,16 @@
-"""Forge Execute receipt hooks for Google ADK.
+"""EYDII Execute receipt hooks for Google ADK.
 
 Automatically signs and submits receipts when Google ADK tools are invoked.
 
 Usage:
-    from forge_google_adk import ForgeExecuteHook, forge_execute_wrap_tool
+    from eydii_google_adk import EydiiExecuteHook, eydii_execute_wrap_tool
 
     # Option 1: Hook for manual receipt emission
-    hook = ForgeExecuteHook(task_id="task_abc...", agent_id="finance-agent")
+    hook = EydiiExecuteHook(task_id="task_abc...", agent_id="finance-agent")
     hook.on_tool_use("payment.create")
 
     # Option 2: Decorator wrapping tools with receipt emission
-    @forge_execute_wrap_tool(task_id="task_abc...", agent_id="finance-agent")
+    @eydii_execute_wrap_tool(task_id="task_abc...", agent_id="finance-agent")
     def send_payment(amount: float, recipient: str) -> str:
         return process_payment(amount, recipient)
 """
@@ -24,19 +24,19 @@ import os
 from collections.abc import Callable
 from typing import Any, Optional
 
-from veritera import Forge, ReceiptSigner
+from veritera import Eydii, EydiiSigner
 
-logger = logging.getLogger("forge_google_adk.execute")
+logger = logging.getLogger("eydii_google_adk.execute")
 
 
-class ForgeExecuteHook:
+class EydiiExecuteHook:
     """Hook that emits signed receipts for Google ADK tool invocations.
 
     Attach this to your Google ADK workflow to automatically track execution.
 
     Usage::
 
-        hook = ForgeExecuteHook(task_id="task_abc...", agent_id="finance-agent")
+        hook = EydiiExecuteHook(task_id="task_abc...", agent_id="finance-agent")
 
         # Call when a tool is invoked
         hook.on_tool_use("payment.create")
@@ -59,8 +59,8 @@ class ForgeExecuteHook:
         self.task_id = task_id
         self.agent_id = agent_id
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
-        self._client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-        self._signer = ReceiptSigner(signing_key=signing_key or key)
+        self._client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+        self._signer = EydiiSigner(signing_key=signing_key or key)
 
     def on_tool_use(self, action_type: str) -> dict:
         """Call this when a tool is invoked. Signs and submits a receipt.
@@ -85,7 +85,7 @@ class ForgeExecuteHook:
 
         Usage::
 
-            hook = ForgeExecuteHook(task_id="task_abc...", agent_id="agent")
+            hook = EydiiExecuteHook(task_id="task_abc...", agent_id="agent")
             agent = Agent(
                 tools=[...],
                 after_tool_callback=hook.after_tool_callback(),
@@ -131,7 +131,7 @@ class ForgeExecuteHook:
             return {"error": str(exc)}
 
 
-def forge_execute_wrap_tool(
+def eydii_execute_wrap_tool(
     task_id: str,
     agent_id: str,
     api_key: Optional[str] = None,
@@ -144,7 +144,7 @@ def forge_execute_wrap_tool(
 
     Usage::
 
-        @forge_execute_wrap_tool(task_id="task_abc...", agent_id="finance-agent")
+        @eydii_execute_wrap_tool(task_id="task_abc...", agent_id="finance-agent")
         def send_payment(amount: float, recipient: str) -> str:
             \"\"\"Send a payment to a recipient.\"\"\"
             return process_payment(amount, recipient)
@@ -152,14 +152,14 @@ def forge_execute_wrap_tool(
     Args:
         task_id: Task identifier for the receipt chain.
         agent_id: Agent identifier for the receipt.
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
         signing_key: Key used to sign receipts (defaults to api_key).
-        base_url: Forge API endpoint.
+        base_url: EYDII API endpoint.
 
     Returns:
         A decorator that wraps tool functions with receipt emission.
     """
-    hook = ForgeExecuteHook(
+    hook = EydiiExecuteHook(
         task_id=task_id,
         agent_id=agent_id,
         api_key=api_key,

@@ -1,19 +1,19 @@
-"""Forge Verify tools for Agno (formerly Phidata) agents.
+"""EYDII tools for Agno (formerly Phidata) agents.
 
 Three integration approaches:
 
-1. ForgeVerifyTool — a callable tool the agent can invoke to verify actions:
-     from forge_agno import ForgeVerifyTool
-     forge = ForgeVerifyTool(policy="finance-controls")
-     agent = Agent(tools=[forge])
+1. EydiiVerifyTool — a callable tool the agent can invoke to verify actions:
+     from eydii_agno import EydiiVerifyTool
+     eydii = EydiiVerifyTool(policy="finance-controls")
+     agent = Agent(tools=[eydii])
 
-2. forge_wrap_tool — decorator that wraps any tool function with pre-execution verification:
-     @forge_wrap_tool(policy="finance-controls")
+2. eydii_wrap_tool — decorator that wraps any tool function with pre-execution verification:
+     @eydii_wrap_tool(policy="finance-controls")
      def send_payment(amount: float, recipient: str) -> str:
          return process_payment(amount, recipient)
 
-3. ForgeToolkit — an Agno Toolkit that exposes verify_action and list_policies:
-     agent = Agent(tools=[ForgeToolkit(policy="production-safety")])
+3. EydiiToolkit — an Agno Toolkit that exposes verify_action and list_policies:
+     agent = Agent(tools=[EydiiToolkit(policy="production-safety")])
 """
 
 from __future__ import annotations
@@ -26,9 +26,9 @@ import os
 from typing import Any, Callable, Optional
 
 from agno.tools import Toolkit
-from veritera import Forge
+from veritera import Eydii
 
-logger = logging.getLogger("forge_agno")
+logger = logging.getLogger("eydii_agno")
 
 
 # ---------------------------------------------------------------------------
@@ -40,14 +40,14 @@ def _make_client(
     base_url: str,
     timeout: float,
     fail_closed: bool,
-) -> Forge:
-    """Create and return a configured Forge client."""
+) -> EydiiClient:
+    """Create and return a configured EYDII client."""
     key = api_key or os.environ.get("VERITERA_API_KEY", "")
     if not key:
         raise ValueError(
-            "Forge API key required. Pass api_key= or set VERITERA_API_KEY env var."
+            "EYDII API key required. Pass api_key= or set VERITERA_API_KEY env var."
         )
-    return Forge(
+    return Eydii(
         api_key=key,
         base_url=base_url,
         timeout=timeout,
@@ -56,30 +56,30 @@ def _make_client(
 
 
 # ---------------------------------------------------------------------------
-# 1. ForgeVerifyTool — standalone verification tool
+# 1. EydiiVerifyTool — standalone verification tool
 # ---------------------------------------------------------------------------
 
-class ForgeVerifyTool:
-    """A callable tool that verifies agent actions through Forge policies.
+class EydiiVerifyTool:
+    """A callable tool that verifies agent actions through EYDII policies.
 
     Agno agents accept any callable as a tool. This class is callable and
     can be passed directly to ``Agent(tools=[...])``.
 
     Usage::
 
-        from forge_agno import ForgeVerifyTool
+        from eydii_agno import EydiiVerifyTool
         from agno.agent import Agent
 
-        forge = ForgeVerifyTool(policy="finance-controls")
-        agent = Agent(tools=[forge])
+        eydii = EydiiVerifyTool(policy="finance-controls")
+        agent = Agent(tools=[eydii])
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
-        base_url: Forge API endpoint.
-        agent_id: Identifier for this agent in Forge audit logs.
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
+        base_url: EYDII API endpoint.
+        agent_id: Identifier for this agent in EYDII audit logs.
         policy: Default policy to evaluate against.
-        fail_closed: If True (default), deny when Forge API is unreachable.
-        timeout: HTTP timeout in seconds for Forge API calls.
+        fail_closed: If True (default), deny when EYDII API is unreachable.
+        timeout: HTTP timeout in seconds for EYDII API calls.
         skip_actions: Action names to skip verification for.
         on_verified: Callback(action, result) when approved.
         on_blocked: Callback(action, reason) when denied.
@@ -106,7 +106,7 @@ class ForgeVerifyTool:
         self._on_blocked = on_blocked
 
         # Agno uses the function name and docstring for tool metadata
-        self.__name__ = "forge_verify"
+        self.__name__ = "eydii_verify"
         self.__doc__ = (
             "Verify an AI agent action against security policies before executing it. "
             "Call this BEFORE performing any sensitive action (payments, emails, deletions, API calls). "
@@ -118,7 +118,7 @@ class ForgeVerifyTool:
         )
 
     def __call__(self, action: str, params: str = "{}") -> str:
-        """Verify an action against Forge policies.
+        """Verify an action against EYDII policies.
 
         Args:
             action: The action identifier (e.g. 'payment.create').
@@ -143,7 +143,7 @@ class ForgeVerifyTool:
                 policy=self._policy,
             )
         except Exception as exc:
-            logger.error("Forge verify error: %s", exc)
+            logger.error("EYDII verify error: %s", exc)
             if self._on_blocked:
                 self._on_blocked(action, str(exc))
             if self._fail_closed:
@@ -151,7 +151,7 @@ class ForgeVerifyTool:
             return f"ERROR: Verification unavailable — {exc}"
 
         if result.verified:
-            logger.debug("Forge APPROVED: %s (proof=%s)", action, result.proof_id)
+            logger.debug("EYDII APPROVED: %s (proof=%s)", action, result.proof_id)
             if self._on_verified:
                 self._on_verified(action, result)
             return (
@@ -161,7 +161,7 @@ class ForgeVerifyTool:
             )
 
         reason = result.reason or "Policy violation"
-        logger.warning("Forge DENIED: %s — %s", action, reason)
+        logger.warning("EYDII DENIED: %s — %s", action, reason)
         if self._on_blocked:
             self._on_blocked(action, reason)
         return (
@@ -177,10 +177,10 @@ class ForgeVerifyTool:
 
 
 # ---------------------------------------------------------------------------
-# 2. forge_wrap_tool — decorator for wrapping tool functions
+# 2. eydii_wrap_tool — decorator for wrapping tool functions
 # ---------------------------------------------------------------------------
 
-def forge_wrap_tool(
+def eydii_wrap_tool(
     api_key: Optional[str] = None,
     base_url: str = "https://veritera.ai",
     agent_id: str = "agno-agent",
@@ -191,26 +191,26 @@ def forge_wrap_tool(
     on_verified: Optional[Callable] = None,
     on_blocked: Optional[Callable] = None,
 ) -> Callable:
-    """Decorator that wraps an Agno tool function with pre-execution Forge verification.
+    """Decorator that wraps an Agno tool function with pre-execution EYDII verification.
 
     Before the wrapped function executes, a verification request is sent to
-    Forge. If the action is denied, the function is NOT called and a denial
+    EYDII. If the action is denied, the function is NOT called and a denial
     message is returned instead.
 
     Usage::
 
-        from forge_agno import forge_wrap_tool
+        from eydii_agno import eydii_wrap_tool
 
-        @forge_wrap_tool(policy="finance-controls")
+        @eydii_wrap_tool(policy="finance-controls")
         def send_payment(amount: float, recipient: str) -> str:
             return process_payment(amount, recipient)
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
-        base_url: Forge API endpoint.
-        agent_id: Identifier for this agent in Forge audit logs.
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
+        base_url: EYDII API endpoint.
+        agent_id: Identifier for this agent in EYDII audit logs.
         policy: Policy to evaluate actions against.
-        fail_closed: If True (default), deny when Forge API is unreachable.
+        fail_closed: If True (default), deny when EYDII API is unreachable.
         timeout: Request timeout in seconds.
         skip_actions: Action names to skip verification for.
         on_verified: Callback(action, result) when approved.
@@ -233,7 +233,7 @@ def forge_wrap_tool(
             if args:
                 verify_params["_positional_args"] = [str(a) for a in args]
 
-            # Verify through Forge
+            # Verify through EYDII
             try:
                 result = client.verify_sync(
                     action=action_name,
@@ -242,7 +242,7 @@ def forge_wrap_tool(
                     policy=policy,
                 )
             except Exception as exc:
-                logger.error("Forge verify error for %s: %s", action_name, exc)
+                logger.error("EYDII verify error for %s: %s", action_name, exc)
                 if on_blocked:
                     on_blocked(action_name, str(exc))
                 if fail_closed:
@@ -250,16 +250,16 @@ def forge_wrap_tool(
                 return func(*args, **kwargs)
 
             if result.verified:
-                logger.debug("Forge APPROVED: %s (proof=%s)", action_name, result.proof_id)
+                logger.debug("EYDII APPROVED: %s (proof=%s)", action_name, result.proof_id)
                 if on_verified:
                     on_verified(action_name, result)
                 return func(*args, **kwargs)
 
             reason = result.reason or "Policy violation"
-            logger.warning("Forge DENIED: %s — %s", action_name, reason)
+            logger.warning("EYDII DENIED: %s — %s", action_name, reason)
             if on_blocked:
                 on_blocked(action_name, reason)
-            return f"DENIED: Action '{action_name}' blocked by Forge: {reason}"
+            return f"DENIED: Action '{action_name}' blocked by EYDII: {reason}"
 
         @functools.wraps(func)
         async def async_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -283,7 +283,7 @@ def forge_wrap_tool(
                     ),
                 )
             except Exception as exc:
-                logger.error("Forge verify error for %s: %s", action_name, exc)
+                logger.error("EYDII verify error for %s: %s", action_name, exc)
                 if on_blocked:
                     on_blocked(action_name, str(exc))
                 if fail_closed:
@@ -291,16 +291,16 @@ def forge_wrap_tool(
                 return await func(*args, **kwargs)
 
             if result.verified:
-                logger.debug("Forge APPROVED: %s (proof=%s)", action_name, result.proof_id)
+                logger.debug("EYDII APPROVED: %s (proof=%s)", action_name, result.proof_id)
                 if on_verified:
                     on_verified(action_name, result)
                 return await func(*args, **kwargs)
 
             reason = result.reason or "Policy violation"
-            logger.warning("Forge DENIED: %s — %s", action_name, reason)
+            logger.warning("EYDII DENIED: %s — %s", action_name, reason)
             if on_blocked:
                 on_blocked(action_name, reason)
-            return f"DENIED: Action '{action_name}' blocked by Forge: {reason}"
+            return f"DENIED: Action '{action_name}' blocked by EYDII: {reason}"
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
@@ -310,28 +310,28 @@ def forge_wrap_tool(
 
 
 # ---------------------------------------------------------------------------
-# 3. ForgeToolkit — Agno Toolkit class
+# 3. EydiiToolkit — Agno Toolkit class
 # ---------------------------------------------------------------------------
 
-class ForgeToolkit(Toolkit):
-    """Agno Toolkit that provides Forge verification tools to agents.
+class EydiiToolkit(Toolkit):
+    """Agno Toolkit that provides EYDII verification tools to agents.
 
     Exposes ``verify_action`` and ``list_policies`` as agent-callable tools.
 
     Usage::
 
-        from forge_agno import ForgeToolkit
+        from eydii_agno import EydiiToolkit
         from agno.agent import Agent
 
-        agent = Agent(tools=[ForgeToolkit(policy="production-safety")])
+        agent = Agent(tools=[EydiiToolkit(policy="production-safety")])
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
-        base_url: Forge API endpoint.
-        agent_id: Identifier for this agent in Forge audit logs.
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
+        base_url: EYDII API endpoint.
+        agent_id: Identifier for this agent in EYDII audit logs.
         policy: Default policy to evaluate against.
-        fail_closed: If True (default), deny when Forge API is unreachable.
-        timeout: HTTP timeout in seconds for Forge API calls.
+        fail_closed: If True (default), deny when EYDII API is unreachable.
+        timeout: HTTP timeout in seconds for EYDII API calls.
         skip_actions: Action names to skip verification for.
         on_verified: Callback(action, result) when approved.
         on_blocked: Callback(action, reason) when denied.
@@ -349,7 +349,7 @@ class ForgeToolkit(Toolkit):
         on_verified: Optional[Callable] = None,
         on_blocked: Optional[Callable] = None,
     ):
-        super().__init__(name="forge_toolkit")
+        super().__init__(name="eydii_toolkit")
         self._client = _make_client(api_key, base_url, timeout, fail_closed)
         self._agent_id = agent_id
         self._policy = policy
@@ -363,7 +363,7 @@ class ForgeToolkit(Toolkit):
         self.register(self.list_policies)
 
     def verify_action(self, action: str, params: str = "{}") -> str:
-        """Verify an AI agent action against Forge security policies before executing it.
+        """Verify an AI agent action against EYDII security policies before executing it.
 
         Call this BEFORE performing any sensitive action (payments, emails, deletions, API calls).
         Returns APPROVED or DENIED with a reason.
@@ -391,7 +391,7 @@ class ForgeToolkit(Toolkit):
                 policy=self._policy,
             )
         except Exception as exc:
-            logger.error("Forge verify error: %s", exc)
+            logger.error("EYDII verify error: %s", exc)
             if self._on_blocked:
                 self._on_blocked(action, str(exc))
             if self._fail_closed:
@@ -399,7 +399,7 @@ class ForgeToolkit(Toolkit):
             return f"ERROR: Verification unavailable — {exc}"
 
         if result.verified:
-            logger.debug("Forge APPROVED: %s (proof=%s)", action, result.proof_id)
+            logger.debug("EYDII APPROVED: %s (proof=%s)", action, result.proof_id)
             if self._on_verified:
                 self._on_verified(action, result)
             return (
@@ -409,7 +409,7 @@ class ForgeToolkit(Toolkit):
             )
 
         reason = result.reason or "Policy violation"
-        logger.warning("Forge DENIED: %s — %s", action, reason)
+        logger.warning("EYDII DENIED: %s — %s", action, reason)
         if self._on_blocked:
             self._on_blocked(action, reason)
         return (
@@ -419,7 +419,7 @@ class ForgeToolkit(Toolkit):
         )
 
     def list_policies(self) -> str:
-        """List available Forge verification policies.
+        """List available EYDII verification policies.
 
         Returns:
             str: A formatted list of available policies, or an error message.
@@ -427,7 +427,7 @@ class ForgeToolkit(Toolkit):
         try:
             policies = self._client.list_policies_sync()
             if not policies:
-                return "No policies found. Create one at forge.veritera.ai/dashboard."
+                return "No policies found. Create one at id.veritera.ai/dashboard."
             lines = []
             for p in policies:
                 name = getattr(p, "name", str(p))

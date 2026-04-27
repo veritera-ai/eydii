@@ -1,13 +1,13 @@
-"""Forge LLM call hooks for CrewAI.
+"""EYDII LLM call hooks for CrewAI.
 
 Intercept LLM calls at the lowest level — before the model runs and after it responds.
 
 Usage:
-    from forge_crewai import forge_before_llm, forge_after_llm
+    from eydii_crewai import eydii_before_llm, eydii_after_llm
 
     # Register hooks (they apply globally to all CrewAI agents)
-    forge_before_llm(policy="safety-controls")
-    forge_after_llm()  # audit all responses
+    eydii_before_llm(policy="safety-controls")
+    eydii_after_llm()  # audit all responses
 """
 
 from __future__ import annotations
@@ -16,28 +16,28 @@ import logging
 import os
 from typing import Optional
 
-from veritera import Forge
+from veritera import Eydii
 
-logger = logging.getLogger("forge_crewai")
+logger = logging.getLogger("eydii_crewai")
 
 
-def forge_before_llm(
+def eydii_before_llm(
     api_key: Optional[str] = None,
-    base_url: str = "https://forge.veritera.ai",
+    base_url: str = "https://id.veritera.ai",
     agent_id: str = "crewai-agent",
     policy: Optional[str] = None,
     fail_closed: bool = True,
     max_iterations: Optional[int] = None,
 ):
-    """Register a CrewAI @before_llm_call hook that verifies through Forge.
+    """Register a CrewAI @before_llm_call hook that verifies through EYDII.
 
     This hook runs before every LLM call in the crew. It can block execution
     by returning False.
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
         policy: Policy to evaluate against.
-        fail_closed: If True, block LLM calls when Forge API is unreachable.
+        fail_closed: If True, block LLM calls when EYDII API is unreachable.
         max_iterations: If set, block after this many iterations (safety limit).
     """
     try:
@@ -47,14 +47,14 @@ def forge_before_llm(
         return None
 
     key = api_key or os.environ.get("VERITERA_API_KEY", "")
-    client = Forge(api_key=key, base_url=base_url, fail_closed=fail_closed)
+    client = Eydii(api_key=key, base_url=base_url, fail_closed=fail_closed)
 
     @before_llm_call
-    def _forge_pre_check(context: LLMCallHookContext):
+    def _eydii_pre_check(context: LLMCallHookContext):
         # Safety limit on iterations
         if max_iterations and hasattr(context, "iterations"):
             if context.iterations > max_iterations:
-                logger.warning("Forge: iteration limit exceeded (%d)", context.iterations)
+                logger.warning("EYDII: iteration limit exceeded (%d)", context.iterations)
                 return False
 
         agent_role = context.agent.role if hasattr(context, "agent") and context.agent else "unknown"
@@ -74,28 +74,28 @@ def forge_before_llm(
                 policy=policy,
             )
         except Exception as exc:
-            logger.error("Forge before_llm_call error: %s", exc)
+            logger.error("EYDII before_llm_call error: %s", exc)
             return None if not fail_closed else False
 
         if not result.verified:
-            logger.warning("Forge DENIED LLM call for %s: %s", agent_role, result.reason)
+            logger.warning("EYDII DENIED LLM call for %s: %s", agent_role, result.reason)
             return False
 
         return None  # Allow
 
-    return _forge_pre_check
+    return _eydii_pre_check
 
 
-def forge_after_llm(
+def eydii_after_llm(
     api_key: Optional[str] = None,
-    base_url: str = "https://forge.veritera.ai",
+    base_url: str = "https://id.veritera.ai",
     agent_id: str = "crewai-agent",
     policy: Optional[str] = None,
 ):
-    """Register a CrewAI @after_llm_call hook that audits responses through Forge.
+    """Register a CrewAI @after_llm_call hook that audits responses through EYDII.
 
-    This hook logs every LLM response to the Forge audit trail.
-    It does not block — use forge_before_llm for blocking.
+    This hook logs every LLM response to the EYDII audit trail.
+    It does not block — use eydii_before_llm for blocking.
     """
     try:
         from crewai.hooks import after_llm_call, LLMCallHookContext
@@ -104,10 +104,10 @@ def forge_after_llm(
         return None
 
     key = api_key or os.environ.get("VERITERA_API_KEY", "")
-    client = Forge(api_key=key, base_url=base_url, fail_closed=False)
+    client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
 
     @after_llm_call
-    def _forge_post_audit(context: LLMCallHookContext):
+    def _eydii_post_audit(context: LLMCallHookContext):
         response_text = getattr(context, "response", "")
         if response_text:
             response_text = str(response_text)[:2000]
@@ -125,8 +125,8 @@ def forge_after_llm(
                 policy=policy,
             )
         except Exception as exc:
-            logger.debug("Forge after_llm_call audit error (non-blocking): %s", exc)
+            logger.debug("EYDII after_llm_call audit error (non-blocking): %s", exc)
 
         return None  # Keep original response
 
-    return _forge_post_audit
+    return _eydii_post_audit

@@ -1,12 +1,12 @@
-"""Forge Execute receipt middleware for LlamaIndex.
+"""EYDII Execute receipt middleware for LlamaIndex.
 
 Automatically signs and submits receipts when LlamaIndex tools are invoked.
 
 Usage:
-    from forge_llamaindex import ForgeExecuteHandler
+    from eydii_llamaindex import EydiiExecuteHandler
     from llama_index.core.instrumentation import get_dispatcher
 
-    handler = ForgeExecuteHandler(
+    handler = EydiiExecuteHandler(
         task_id="task_abc...",
         agent_id="research-agent",
     )
@@ -20,12 +20,12 @@ import logging
 import os
 from typing import Any, Optional
 
-from veritera import Forge, ReceiptSigner
+from veritera import Eydii, EydiiSigner
 
-logger = logging.getLogger("forge_llamaindex.execute")
+logger = logging.getLogger("eydii_llamaindex.execute")
 
 
-class ForgeExecuteHandler:
+class EydiiExecuteHandler:
     """LlamaIndex event handler that emits signed receipts for tool calls.
 
     Hooks into the LlamaIndex instrumentation dispatcher to capture tool
@@ -38,13 +38,13 @@ class ForgeExecuteHandler:
         agent_id: str,
         api_key: Optional[str] = None,
         signing_key: Optional[str] = None,
-        base_url: str = "https://forge.veritera.ai",
+        base_url: str = "https://id.veritera.ai",
     ):
         self.task_id = task_id
         self.agent_id = agent_id
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
-        self._client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-        self._signer = ReceiptSigner(signing_key=signing_key or key)
+        self._client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+        self._signer = EydiiSigner(signing_key=signing_key or key)
 
     def handle(self, event: Any, **kwargs: Any) -> None:
         """Handle a LlamaIndex instrumentation event.

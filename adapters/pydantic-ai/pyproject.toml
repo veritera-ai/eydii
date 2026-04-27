@@ -1,12 +1,12 @@
 [project]
-name = "pydantic-ai-forge"
+name = "pydantic-ai-eydii"
 version = "0.1.2"
-description = "Forge Verify tools and middleware for Pydantic AI — verify every agent action before execution"
+description = "EYDII tools and middleware for Pydantic AI — verify every agent action before execution"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [{name = "Veritera AI", email = "engineering@veritera.ai"}]
-keywords = ["veritera", "forge", "pydantic-ai", "verification", "ai-safety"]
+keywords = ["veritera", "eydii", "pydantic-ai", "verification", "ai-safety"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -21,13 +21,13 @@ dependencies = [
 ]
 
 [project.urls]
-Homepage = "https://forge.veritera.ai"
-Documentation = "https://forge.veritera.ai/docs"
-Repository = "https://github.com/veritera-ai/pydantic-ai-forge"
+Homepage = "https://id.veritera.ai"
+Documentation = "https://id.veritera.ai/docs"
+Repository = "https://github.com/veritera-ai/pydantic-ai-eydii"
 
 [build-system]
 requires = ["setuptools>=68.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools.packages.find]
-include = ["forge_pydantic_ai*", "pydantic_ai_forge*"]
+include = ["eydii_pydantic_ai*", "pydantic_ai_eydii*"]

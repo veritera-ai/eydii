@@ -1,7 +1,7 @@
 <h1 align="center">EYDII</h1>
 
 <p align="center">
-  <strong>The trust layer for autonomous systems.</strong>
+  <strong>The trustless verification layer for autonomous systems. Content-blind. Mathematical.</strong>
 </p>
 
 <p align="center">
@@ -181,8 +181,8 @@ See [`docs/mcp-setup.md`](docs/mcp-setup.md) for configuration.
 ```
 eydii/
   sdks/
-    javascript/          # @veritera.ai/eydii (npm)
-    python/              # veritera (PyPI)
+    javascript/          # @veritera.ai/eydii — install from npm
+    python/              # veritera — install from PyPI
   adapters/
     langchain/           # LangChain + LangGraph
     crewai/              # CrewAI
@@ -194,9 +194,9 @@ eydii/
     mastra/              # Mastra
     n8n/                 # n8n
     openclaw/            # OpenClaw
-  docs/                  # Guides and API reference
-  examples/              # Integration examples
 ```
+
+SDKs are distributed via npm and PyPI. Source for SDKs is maintained in private repositories.
 
 ## Architecture
 

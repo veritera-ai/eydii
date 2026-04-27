@@ -1,19 +1,19 @@
-"""Forge Verify tools and middleware for Pydantic AI.
+"""EYDII tools and middleware for Pydantic AI.
 
 Three integration approaches:
 
-1. ForgeVerifyTool — explicit verification tool the agent calls:
-     from forge_pydantic_ai import ForgeVerifyTool
-     forge_tool = ForgeVerifyTool(policy="finance-controls")
-     agent.tool(forge_tool.verify)
+1. EydiiVerifyTool — explicit verification tool the agent calls:
+     from eydii_pydantic_ai import EydiiVerifyTool
+     eydii_tool = EydiiVerifyTool(policy="finance-controls")
+     agent.tool(eydii_tool.verify)
 
-2. forge_tool_wrapper — decorator that wraps any tool with verification:
-     @forge_tool_wrapper(policy="finance-controls")
+2. eydii_tool_wrapper — decorator that wraps any tool with verification:
+     @eydii_tool_wrapper(policy="finance-controls")
      async def send_payment(ctx, amount: float, recipient: str) -> str:
          return process_payment(amount, recipient)
 
-3. ForgeMiddleware — intercepts all tool calls during agent.run():
-     middleware = ForgeMiddleware(policy="finance-controls")
+3. EydiiMiddleware — intercepts all tool calls during agent.run():
+     middleware = EydiiMiddleware(policy="finance-controls")
      result = await middleware.run(agent, "Send $500 to vendor")
 """
 
@@ -27,13 +27,13 @@ import os
 from collections.abc import Callable
 from typing import Any, Optional
 
-from veritera import Forge
+from veritera import Eydii
 
-logger = logging.getLogger("forge_pydantic_ai")
+logger = logging.getLogger("eydii_pydantic_ai")
 
 
-class ForgeVerifyTool:
-    """Pydantic AI tool that verifies agent actions through Forge policies.
+class EydiiVerifyTool:
+    """Pydantic AI tool that verifies agent actions through EYDII policies.
 
     Create an instance and register its ``verify`` method as a tool on your
     Pydantic AI agent. The agent calls it before executing sensitive actions.
@@ -41,19 +41,19 @@ class ForgeVerifyTool:
     Usage::
 
         from pydantic_ai import Agent
-        from forge_pydantic_ai import ForgeVerifyTool
+        from eydii_pydantic_ai import EydiiVerifyTool
 
         agent = Agent('openai:gpt-4o')
-        forge_tool = ForgeVerifyTool(policy="finance-controls")
-        agent.tool(forge_tool.verify)
+        eydii_tool = EydiiVerifyTool(policy="finance-controls")
+        agent.tool(eydii_tool.verify)
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
-        base_url: Forge API endpoint.
-        agent_id: Identifier for this agent in Forge audit logs.
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
+        base_url: EYDII API endpoint.
+        agent_id: Identifier for this agent in EYDII audit logs.
         policy: Default policy to evaluate against.
-        fail_closed: If True (default), deny when Forge API is unreachable.
-        timeout: HTTP timeout in seconds for Forge API calls.
+        fail_closed: If True (default), deny when EYDII API is unreachable.
+        timeout: HTTP timeout in seconds for EYDII API calls.
     """
 
     def __init__(
@@ -68,9 +68,9 @@ class ForgeVerifyTool:
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
         if not key:
             raise ValueError(
-                "Forge API key required. Pass api_key= or set VERITERA_API_KEY env var."
+                "EYDII API key required. Pass api_key= or set VERITERA_API_KEY env var."
             )
-        self._client = Forge(
+        self._client = Eydii(
             api_key=key,
             base_url=base_url,
             timeout=timeout,
@@ -81,7 +81,7 @@ class ForgeVerifyTool:
         self._fail_closed = fail_closed
 
     async def verify(self, ctx: Any, action: str, params: str = "{}") -> str:
-        """Verify an AI agent action against Forge security policies before executing it.
+        """Verify an AI agent action against EYDII security policies before executing it.
 
         Call this BEFORE performing any sensitive action (payments, emails, deletions, API calls).
         Returns APPROVED or DENIED with a reason.
@@ -107,20 +107,20 @@ class ForgeVerifyTool:
                 ),
             )
         except Exception as exc:
-            logger.error("Forge verify error: %s", exc)
+            logger.error("EYDII verify error: %s", exc)
             if self._fail_closed:
                 return f"DENIED: Verification unavailable — {exc}. Do NOT proceed with this action."
             return f"ERROR: Verification unavailable — {exc}"
 
         if result.verified:
-            logger.debug("Forge APPROVED: %s", action)
+            logger.debug("EYDII APPROVED: %s", action)
             return (
                 f"APPROVED: {result.verdict} | "
                 f"proof_id: {result.proof_id} | "
                 f"latency: {result.latency_ms}ms"
             )
 
-        logger.warning("Forge DENIED: %s — %s", action, result.reason)
+        logger.warning("EYDII DENIED: %s — %s", action, result.reason)
         return (
             f"DENIED: {result.reason} | "
             f"proof_id: {result.proof_id} | "
@@ -145,20 +145,20 @@ class ForgeVerifyTool:
                 policy=self._policy,
             )
         except Exception as exc:
-            logger.error("Forge verify error: %s", exc)
+            logger.error("EYDII verify error: %s", exc)
             if self._fail_closed:
                 return f"DENIED: Verification unavailable — {exc}. Do NOT proceed with this action."
             return f"ERROR: Verification unavailable — {exc}"
 
         if result.verified:
-            logger.debug("Forge APPROVED: %s", action)
+            logger.debug("EYDII APPROVED: %s", action)
             return (
                 f"APPROVED: {result.verdict} | "
                 f"proof_id: {result.proof_id} | "
                 f"latency: {result.latency_ms}ms"
             )
 
-        logger.warning("Forge DENIED: %s — %s", action, result.reason)
+        logger.warning("EYDII DENIED: %s — %s", action, result.reason)
         return (
             f"DENIED: {result.reason} | "
             f"proof_id: {result.proof_id} | "
@@ -166,7 +166,7 @@ class ForgeVerifyTool:
         )
 
 
-def forge_tool_wrapper(
+def eydii_tool_wrapper(
     api_key: Optional[str] = None,
     base_url: str = "https://veritera.ai",
     agent_id: str = "pydantic-ai-agent",
@@ -177,25 +177,25 @@ def forge_tool_wrapper(
     on_verified: Optional[Callable] = None,
     on_blocked: Optional[Callable] = None,
 ):
-    """Decorator that wraps any Pydantic AI tool with Forge verification.
+    """Decorator that wraps any Pydantic AI tool with EYDII verification.
 
-    The wrapped tool is verified against Forge policies before execution.
+    The wrapped tool is verified against EYDII policies before execution.
     If the action is denied, the tool returns a denial message instead of executing.
 
     Usage::
 
-        @forge_tool_wrapper(policy="finance-controls")
+        @eydii_tool_wrapper(policy="finance-controls")
         async def send_payment(ctx, amount: float, recipient: str) -> str:
             return process_payment(amount, recipient)
 
         agent = Agent('openai:gpt-4o', tools=[send_payment])
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
-        base_url: Forge API endpoint.
-        agent_id: Identifier for this agent in Forge audit logs.
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
+        base_url: EYDII API endpoint.
+        agent_id: Identifier for this agent in EYDII audit logs.
         policy: Policy to evaluate actions against.
-        fail_closed: If True (default), deny when Forge API is unreachable.
+        fail_closed: If True (default), deny when EYDII API is unreachable.
         timeout: Request timeout in seconds.
         skip_actions: Tool names to skip verification for.
         on_verified: Callback(action, result) when approved.
@@ -204,9 +204,9 @@ def forge_tool_wrapper(
     key = api_key or os.environ.get("VERITERA_API_KEY", "")
     if not key:
         raise ValueError(
-            "Forge API key required. Pass api_key= or set VERITERA_API_KEY env var."
+            "EYDII API key required. Pass api_key= or set VERITERA_API_KEY env var."
         )
-    client = Forge(
+    client = Eydii(
         api_key=key,
         base_url=base_url,
         timeout=timeout,
@@ -226,7 +226,7 @@ def forge_tool_wrapper(
             # Build params from kwargs for verification
             verify_params = {k: v for k, v in kwargs.items() if k != "ctx"}
 
-            # Verify through Forge
+            # Verify through EYDII
             try:
                 result = await asyncio.get_event_loop().run_in_executor(
                     None,
@@ -238,7 +238,7 @@ def forge_tool_wrapper(
                     ),
                 )
             except Exception as exc:
-                logger.error("Forge verify error for %s: %s", tool_name, exc)
+                logger.error("EYDII verify error for %s: %s", tool_name, exc)
                 if fail_closed:
                     if on_blocked:
                         on_blocked(tool_name, str(exc))
@@ -247,16 +247,16 @@ def forge_tool_wrapper(
                 return await func(*args, **kwargs) if asyncio.iscoroutinefunction(func) else func(*args, **kwargs)
 
             if result.verified:
-                logger.debug("Forge APPROVED: %s (proof=%s)", tool_name, result.proof_id)
+                logger.debug("EYDII APPROVED: %s (proof=%s)", tool_name, result.proof_id)
                 if on_verified:
                     on_verified(tool_name, result)
                 return await func(*args, **kwargs) if asyncio.iscoroutinefunction(func) else func(*args, **kwargs)
 
             reason = result.reason or "Policy violation"
-            logger.warning("Forge DENIED: %s — %s", tool_name, reason)
+            logger.warning("EYDII DENIED: %s — %s", tool_name, reason)
             if on_blocked:
                 on_blocked(tool_name, reason)
-            return f"Action '{tool_name}' denied by Forge: {reason}"
+            return f"Action '{tool_name}' denied by EYDII: {reason}"
 
         @functools.wraps(func)
         def sync_wrapper(*args: Any, **kwargs: Any) -> Any:
@@ -267,7 +267,7 @@ def forge_tool_wrapper(
             # Build params from kwargs for verification
             verify_params = {k: v for k, v in kwargs.items() if k != "ctx"}
 
-            # Verify through Forge
+            # Verify through EYDII
             try:
                 result = client.verify_sync(
                     action=tool_name,
@@ -276,7 +276,7 @@ def forge_tool_wrapper(
                     policy=policy,
                 )
             except Exception as exc:
-                logger.error("Forge verify error for %s: %s", tool_name, exc)
+                logger.error("EYDII verify error for %s: %s", tool_name, exc)
                 if fail_closed:
                     if on_blocked:
                         on_blocked(tool_name, str(exc))
@@ -284,16 +284,16 @@ def forge_tool_wrapper(
                 return func(*args, **kwargs)
 
             if result.verified:
-                logger.debug("Forge APPROVED: %s (proof=%s)", tool_name, result.proof_id)
+                logger.debug("EYDII APPROVED: %s (proof=%s)", tool_name, result.proof_id)
                 if on_verified:
                     on_verified(tool_name, result)
                 return func(*args, **kwargs)
 
             reason = result.reason or "Policy violation"
-            logger.warning("Forge DENIED: %s — %s", tool_name, reason)
+            logger.warning("EYDII DENIED: %s — %s", tool_name, reason)
             if on_blocked:
                 on_blocked(tool_name, reason)
-            return f"Action '{tool_name}' denied by Forge: {reason}"
+            return f"Action '{tool_name}' denied by EYDII: {reason}"
 
         if asyncio.iscoroutinefunction(func):
             return async_wrapper
@@ -302,29 +302,29 @@ def forge_tool_wrapper(
     return decorator
 
 
-class ForgeMiddleware:
-    """Middleware that intercepts all Pydantic AI tool calls through Forge.
+class EydiiMiddleware:
+    """Middleware that intercepts all Pydantic AI tool calls through EYDII.
 
-    Wraps ``agent.run()`` to verify every tool invocation against Forge policies.
+    Wraps ``agent.run()`` to verify every tool invocation against EYDII policies.
     If a tool call is denied, it returns a denial message instead of executing.
 
     Usage::
 
         from pydantic_ai import Agent
-        from forge_pydantic_ai import ForgeMiddleware
+        from eydii_pydantic_ai import EydiiMiddleware
 
         agent = Agent('openai:gpt-4o', tools=[send_payment, check_balance])
-        middleware = ForgeMiddleware(policy="finance-controls")
+        middleware = EydiiMiddleware(policy="finance-controls")
 
-        # Verified run — all tool calls go through Forge
+        # Verified run — all tool calls go through EYDII
         result = await middleware.run(agent, "Send $500 to vendor")
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
-        base_url: Forge API endpoint.
-        agent_id: Identifier for this agent in Forge audit logs.
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
+        base_url: EYDII API endpoint.
+        agent_id: Identifier for this agent in EYDII audit logs.
         policy: Policy to evaluate actions against.
-        fail_closed: If True (default), deny when Forge API is unreachable.
+        fail_closed: If True (default), deny when EYDII API is unreachable.
         timeout: Request timeout in seconds.
         skip_actions: Tool names to skip verification for.
         on_verified: Callback(action, result) when approved.
@@ -346,9 +346,9 @@ class ForgeMiddleware:
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
         if not key:
             raise ValueError(
-                "Forge API key required. Pass api_key= or set VERITERA_API_KEY env var."
+                "EYDII API key required. Pass api_key= or set VERITERA_API_KEY env var."
             )
-        self._client = Forge(
+        self._client = Eydii(
             api_key=key,
             base_url=base_url,
             timeout=timeout,
@@ -362,7 +362,7 @@ class ForgeMiddleware:
         self.on_blocked = on_blocked
 
     def _verify_action(self, action: str, params: dict) -> tuple[bool, str]:
-        """Verify a single action through Forge.
+        """Verify a single action through EYDII.
 
         Returns:
             (approved: bool, message: str)
@@ -378,7 +378,7 @@ class ForgeMiddleware:
                 policy=self.policy,
             )
         except Exception as exc:
-            logger.error("Forge verify error for %s: %s", action, exc)
+            logger.error("EYDII verify error for %s: %s", action, exc)
             if self.fail_closed:
                 if self.on_blocked:
                     self.on_blocked(action, str(exc))
@@ -386,16 +386,16 @@ class ForgeMiddleware:
             return (True, "")
 
         if result.verified:
-            logger.debug("Forge APPROVED: %s (proof=%s)", action, result.proof_id)
+            logger.debug("EYDII APPROVED: %s (proof=%s)", action, result.proof_id)
             if self.on_verified:
                 self.on_verified(action, result)
             return (True, "")
 
         reason = result.reason or "Policy violation"
-        logger.warning("Forge DENIED: %s — %s", action, reason)
+        logger.warning("EYDII DENIED: %s — %s", action, reason)
         if self.on_blocked:
             self.on_blocked(action, reason)
-        return (False, f"Action '{action}' denied by Forge: {reason}")
+        return (False, f"Action '{action}' denied by EYDII: {reason}")
 
     async def run(
         self,
@@ -407,9 +407,9 @@ class ForgeMiddleware:
         model: Any = None,
         **kwargs: Any,
     ) -> Any:
-        """Run a Pydantic AI agent with Forge verification on all tool calls.
+        """Run a Pydantic AI agent with EYDII verification on all tool calls.
 
-        Wraps each registered tool with Forge verification before calling
+        Wraps each registered tool with EYDII verification before calling
         ``agent.run()``. After execution, the original tools are restored.
 
         Args:
@@ -487,7 +487,7 @@ class ForgeMiddleware:
     ) -> Any:
         """Synchronous version of run().
 
-        Wraps each registered tool with Forge verification before calling
+        Wraps each registered tool with EYDII verification before calling
         ``agent.run_sync()``. After execution, the original tools are restored.
         """
         original_tools = {}

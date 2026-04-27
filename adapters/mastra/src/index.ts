@@ -1,32 +1,32 @@
 /**
- * Forge Mastra Adapter
+ * EYDII Mastra Adapter
  * ====================
  * Verification integration for Mastra agents.
  * Intercepts tool calls, wraps tools, and provides middleware
- * to verify every agent action through Forge before execution.
+ * to verify every agent action through EYDII before execution.
  *
  * Usage:
- *   import { ForgeIntegration, forgeMiddleware, forgeVerifyTool, forgeWrapTool }
- *     from "@veritera.ai/forge-mastra";
+ *   import { EydiiIntegration, eydiiMiddleware, eydiiVerifyTool, eydiiWrapTool }
+ *     from "@veritera.ai/eydii-mastra";
  *
  * Every action your agent takes is verified before execution.
  * Blocked actions never reach your tools.
  */
 
-import { Veritera as ForgeClient } from "@veritera.ai/forge-verify";
-import type { VerifyResponse } from "@veritera.ai/forge-verify";
+import { Veritera as EydiiClientClient } from "@veritera.ai/eydii";
+import type { VerifyResponse } from "@veritera.ai/eydii";
 
 // ── Re-exports ──
 
-export type { VerifyResponse } from "@veritera.ai/forge-verify";
+export type { VerifyResponse } from "@veritera.ai/eydii";
 
 // ── Types ──
 
-/** Configuration shared across all Forge Mastra exports. */
-export interface ForgeConfig {
-  /** Forge API key (vt_live_... or vt_test_...). Falls back to VERITERA_API_KEY env var. */
+/** Configuration shared across all EYDII Mastra exports. */
+export interface EydiiConfig {
+  /** EYDII API key (vt_live_... or vt_test_...). Falls back to VERITERA_API_KEY env var. */
   apiKey?: string;
-  /** Base URL for Forge API (default: https://forge.veritera.ai) */
+  /** Base URL for EYDII API (default: https://id.veritera.ai) */
   baseUrl?: string;
   /** Agent identifier (default: "mastra-agent") */
   agentId?: string;
@@ -45,7 +45,7 @@ export interface ForgeConfig {
 }
 
 /** Result returned from verification checks. */
-export interface ForgeVerifyResult {
+export interface EydiiVerifyResult {
   verified: boolean;
   action: string;
   verificationId?: string;
@@ -56,9 +56,9 @@ export interface ForgeVerifyResult {
 
 // ── Internal helpers ──
 
-const PREFIX = "[forge-mastra]";
+const PREFIX = "[eydii-mastra]";
 
-function resolveApiKey(config: ForgeConfig): string {
+function resolveApiKey(config: EydiiConfig): string {
   const key = config.apiKey || process.env.VERITERA_API_KEY;
   if (!key) {
     throw new Error(
@@ -68,8 +68,8 @@ function resolveApiKey(config: ForgeConfig): string {
   return key;
 }
 
-function createClient(config: ForgeConfig): InstanceType<typeof ForgeClient> {
-  return new ForgeClient({
+function createClient(config: EydiiConfig): InstanceType<typeof EydiiClient> {
+  return new EydiiClient({
     apiKey: resolveApiKey(config),
     baseUrl: config.baseUrl,
     timeout: config.timeout,
@@ -78,11 +78,11 @@ function createClient(config: ForgeConfig): InstanceType<typeof ForgeClient> {
 }
 
 async function verifyAction(
-  client: InstanceType<typeof ForgeClient>,
-  config: ForgeConfig,
+  client: InstanceType<typeof EydiiClient>,
+  config: EydiiConfig,
   action: string,
   params: Record<string, unknown>,
-): Promise<ForgeVerifyResult> {
+): Promise<EydiiVerifyResult> {
   const skipActions = new Set(config.skipActions ?? []);
 
   if (skipActions.has(action)) {
@@ -136,16 +136,16 @@ async function verifyAction(
 
 // ── Error ──
 
-/** Thrown when Forge blocks an action. */
-export class ForgeBlockedError extends Error {
+/** Thrown when EYDII blocks an action. */
+export class EydiiBlockedError extends Error {
   public readonly action: string;
   public readonly reason: string | null;
   public readonly verificationId?: string;
 
-  constructor(result: ForgeVerifyResult) {
-    const msg = result.reason ?? "Action blocked by Forge verification";
+  constructor(result: EydiiVerifyResult) {
+    const msg = result.reason ?? "Action blocked by EYDII verification";
     super(msg);
-    this.name = "ForgeBlockedError";
+    this.name = "EydiiBlockedError";
     this.action = result.action;
     this.reason = result.reason ?? null;
     this.verificationId = result.verificationId;
@@ -153,46 +153,46 @@ export class ForgeBlockedError extends Error {
 }
 
 // ═══════════════════════════════════════════════════════
-// 1. ForgeIntegration — Mastra Integration class
+// 1. EydiiIntegration — Mastra Integration class
 // ═══════════════════════════════════════════════════════
 
 /**
- * Forge integration for Mastra.
+ * EYDII integration for Mastra.
  * Provides a shared verification client for use across agents, tools, and middleware.
  *
  * @example
  * ```ts
- * import { ForgeIntegration } from "@veritera.ai/forge-mastra";
+ * import { EydiiIntegration } from "@veritera.ai/eydii-mastra";
  *
- * const forge = new ForgeIntegration({
+ * const eydii = new EydiiIntegration({
  *   apiKey: "vt_live_...",
  *   policy: "production-safety",
  * });
  *
  * // Verify an action directly
- * const result = await forge.verify("payment.create", { amount: 500 });
+ * const result = await eydii.verify("payment.create", { amount: 500 });
  * if (!result.verified) console.log("Blocked:", result.reason);
  *
- * // Access the underlying Forge client
- * const client = forge.getClient();
+ * // Access the underlying EYDII client
+ * const client = eydii.getClient();
  * ```
  */
-export class ForgeIntegration {
+export class EydiiIntegration {
   /** Integration name for Mastra registration */
-  readonly name = "forge";
+  readonly name = "eydii";
   /** Human-readable label */
-  readonly label = "Forge Verify";
+  readonly label = "EYDII";
 
-  private readonly client: InstanceType<typeof ForgeClient>;
-  private readonly config: ForgeConfig;
+  private readonly client: InstanceType<typeof EydiiClient>;
+  private readonly config: EydiiConfig;
 
-  constructor(config: ForgeConfig) {
+  constructor(config: EydiiConfig) {
     this.config = { ...config };
     this.client = createClient(this.config);
   }
 
   /**
-   * Verify an action against Forge policies.
+   * Verify an action against EYDII policies.
    *
    * @param action - The action name (e.g., "payment.create", "file.write")
    * @param params - Action parameters
@@ -201,7 +201,7 @@ export class ForgeIntegration {
   async verify(
     action: string,
     params: Record<string, unknown> = {},
-  ): Promise<ForgeVerifyResult> {
+  ): Promise<EydiiVerifyResult> {
     return verifyAction(this.client, this.config, action, params);
   }
 
@@ -211,29 +211,29 @@ export class ForgeIntegration {
    *
    * @param action - Action name
    * @param params - Action parameters
-   * @throws ForgeBlockedError if the action is denied
+   * @throws EydiiBlockedError if the action is denied
    */
   async verifyOrThrow(
     action: string,
     params: Record<string, unknown> = {},
-  ): Promise<ForgeVerifyResult> {
+  ): Promise<EydiiVerifyResult> {
     const result = await this.verify(action, params);
     if (!result.verified) {
-      throw new ForgeBlockedError(result);
+      throw new EydiiBlockedError(result);
     }
     return result;
   }
 
   /**
-   * Get the underlying Forge SDK client for direct API access.
+   * Get the underlying EYDII SDK client for direct API access.
    */
-  getClient(): InstanceType<typeof ForgeClient> {
+  getClient(): InstanceType<typeof EydiiClient> {
     return this.client;
   }
 }
 
 // ═══════════════════════════════════════════════════════
-// 2. forgeVerifyTool — Mastra Tool for explicit verification
+// 2. eydiiVerifyTool — Mastra Tool for explicit verification
 // ═══════════════════════════════════════════════════════
 
 /**
@@ -243,22 +243,22 @@ export class ForgeIntegration {
  * @example
  * ```ts
  * import { Agent } from "@mastra/core";
- * import { forgeVerifyTool } from "@veritera.ai/forge-mastra";
+ * import { eydiiVerifyTool } from "@veritera.ai/eydii-mastra";
  *
  * const agent = new Agent({
  *   tools: {
- *     forge_verify: forgeVerifyTool({ policy: "finance-controls" }),
+ *     eydii_verify: eydiiVerifyTool({ policy: "finance-controls" }),
  *   },
  * });
  * ```
  */
-export function forgeVerifyTool(config: ForgeConfig = {}): ForgeVerifyToolDef {
+export function eydiiVerifyTool(config: EydiiConfig = {}): EydiiVerifyToolDef {
   const client = createClient(config);
 
   return {
-    name: "forge_verify",
+    name: "eydii_verify",
     description:
-      "Verify an action against Forge safety policies before executing it. " +
+      "Verify an action against EYDII rules before executing it. " +
       "Returns whether the action is allowed or blocked, with a reason if blocked.",
     inputSchema: {
       type: "object" as const,
@@ -287,8 +287,8 @@ export function forgeVerifyTool(config: ForgeConfig = {}): ForgeVerifyToolDef {
   };
 }
 
-/** Shape of the tool definition returned by forgeVerifyTool. */
-export interface ForgeVerifyToolDef {
+/** Shape of the tool definition returned by eydiiVerifyTool. */
+export interface EydiiVerifyToolDef {
   name: string;
   description: string;
   inputSchema: {
@@ -309,7 +309,7 @@ export interface ForgeVerifyToolDef {
 }
 
 // ═══════════════════════════════════════════════════════
-// 3. forgeMiddleware — Wraps tool execution with verification
+// 3. eydiiMiddleware — Wraps tool execution with verification
 // ═══════════════════════════════════════════════════════
 
 /** Context passed to middleware functions. */
@@ -320,19 +320,19 @@ export interface MiddlewareContext {
 }
 
 /** Middleware function signature compatible with Mastra's middleware system. */
-export type ForgeMiddlewareFn = (
+export type EydiiMiddlewareFn = (
   context: MiddlewareContext,
   next: () => Promise<unknown>,
 ) => Promise<unknown>;
 
 /**
- * Create middleware that verifies every tool call through Forge before execution.
+ * Create middleware that verifies every tool call through EYDII before execution.
  *
  * @example
  * ```ts
- * import { forgeMiddleware } from "@veritera.ai/forge-mastra";
+ * import { eydiiMiddleware } from "@veritera.ai/eydii-mastra";
  *
- * const middleware = forgeMiddleware({
+ * const middleware = eydiiMiddleware({
  *   policy: "production-safety",
  *   failClosed: true,
  * });
@@ -343,7 +343,7 @@ export type ForgeMiddlewareFn = (
  * });
  * ```
  */
-export function forgeMiddleware(config: ForgeConfig = {}): ForgeMiddlewareFn {
+export function eydiiMiddleware(config: EydiiConfig = {}): EydiiMiddlewareFn {
   const client = createClient(config);
 
   return async (context: MiddlewareContext, next: () => Promise<unknown>) => {
@@ -353,18 +353,18 @@ export function forgeMiddleware(config: ForgeConfig = {}): ForgeMiddlewareFn {
     const result = await verifyAction(client, config, action, params);
 
     if (!result.verified) {
-      throw new ForgeBlockedError(result);
+      throw new EydiiBlockedError(result);
     }
 
     // Attach verification metadata to context for downstream use
-    (context as Record<string, unknown>).forgeVerification = result;
+    (context as Record<string, unknown>).eydiiVerification = result;
 
     return next();
   };
 }
 
 // ═══════════════════════════════════════════════════════
-// 4. forgeWrapTool — Wrap any Mastra tool with verification
+// 4. eydiiWrapTool — Wrap any Mastra tool with verification
 // ═══════════════════════════════════════════════════════
 
 /** Minimal shape of a Mastra tool that can be wrapped. */
@@ -376,22 +376,22 @@ export interface MastraTool<TInput = any, TOutput = any> {
   [key: string]: unknown;
 }
 
-/** Options for wrapping a tool, extends ForgeConfig with per-tool overrides. */
-export interface WrapToolOptions extends ForgeConfig {
-  /** Override the action name sent to Forge (default: tool.name) */
+/** Options for wrapping a tool, extends EydiiConfig with per-tool overrides. */
+export interface WrapToolOptions extends EydiiConfig {
+  /** Override the action name sent to EYDII (default: tool.name) */
   actionName?: string;
 }
 
 /**
- * Wrap any Mastra tool with Forge verification.
+ * Wrap any Mastra tool with EYDII verification.
  * The wrapped tool verifies the action before executing the original.
- * If verification fails, a ForgeBlockedError is thrown and the tool never runs.
+ * If verification fails, a EydiiBlockedError is thrown and the tool never runs.
  *
  * @example
  * ```ts
- * import { forgeWrapTool } from "@veritera.ai/forge-mastra";
+ * import { eydiiWrapTool } from "@veritera.ai/eydii-mastra";
  *
- * const protectedTool = forgeWrapTool(myPaymentTool, {
+ * const protectedTool = eydiiWrapTool(myPaymentTool, {
  *   policy: "finance-controls",
  *   failClosed: true,
  * });
@@ -401,7 +401,7 @@ export interface WrapToolOptions extends ForgeConfig {
  * });
  * ```
  */
-export function forgeWrapTool<TInput extends Record<string, unknown>, TOutput>(
+export function eydiiWrapTool<TInput extends Record<string, unknown>, TOutput>(
   tool: MastraTool<TInput, TOutput>,
   options: WrapToolOptions = {},
 ): MastraTool<TInput, TOutput> {
@@ -414,7 +414,7 @@ export function forgeWrapTool<TInput extends Record<string, unknown>, TOutput>(
       const result = await verifyAction(client, options, actionName, input);
 
       if (!result.verified) {
-        throw new ForgeBlockedError(result);
+        throw new EydiiBlockedError(result);
       }
 
       console.debug(
@@ -428,4 +428,4 @@ export function forgeWrapTool<TInput extends Record<string, unknown>, TOutput>(
 
 // ── Default export ──
 
-export default ForgeIntegration;
+export default EydiiIntegration;

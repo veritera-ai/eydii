@@ -1,12 +1,12 @@
 [project]
-name = "forge-openai"
+name = "eydii-openai"
 version = "0.2.0"
-description = "Forge Verify + Execute middleware for OpenAI Agents SDK — verify tool calls and track executions with cryptographic receipts"
+description = "EYDII + Execute middleware for OpenAI Agents SDK — verify tool calls and track executions with cryptographic receipts"
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
 authors = [{name = "Veritera AI", email = "engineering@veritera.ai"}]
-keywords = ["veritera", "forge", "openai", "agents", "guardrail", "verification", "ai-safety"]
+keywords = ["veritera", "eydii", "openai", "agents", "guardrail", "verification", "ai-safety"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -27,9 +27,9 @@ dev = [
 ]
 
 [project.urls]
-Homepage = "https://forge.veritera.ai"
-Documentation = "https://forge.veritera.ai/docs"
-Repository = "https://github.com/veritera-ai/forge-openai"
+Homepage = "https://id.veritera.ai"
+Documentation = "https://id.veritera.ai/docs"
+Repository = "https://github.com/veritera-ai/eydii-openai"
 
 [build-system]
 requires = ["setuptools>=68.0"]
@@ -40,4 +40,4 @@ asyncio_mode = "auto"
 testpaths = ["tests"]
 
 [tool.setuptools.packages.find]
-include = ["forge_openai*"]
+include = ["eydii_openai*"]

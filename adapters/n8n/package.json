@@ -1,7 +1,7 @@
 {
-  "name": "@veritera.ai/n8n-nodes-forge",
+  "name": "@veritera.ai/n8n-nodes-eydii",
   "version": "0.1.1",
-  "description": "Forge Verify nodes for n8n — verify every AI agent action before execution",
+  "description": "EYDII nodes for n8n — verify every AI agent action before execution",
   "license": "MIT",
   "author": {
     "name": "Veritera AI",
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/veritera-ai/n8n-nodes-forge"
+    "url": "https://github.com/veritera-ai/n8n-nodes-eydii"
   },
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -19,19 +19,19 @@
   },
   "n8n": {
     "n8nNodesApiVersion": 1,
-    "credentials": ["dist/ForgeCredentials.js"],
-    "nodes": ["dist/ForgeVerifyNode.js"]
+    "credentials": ["dist/EydiiCredentials.js"],
+    "nodes": ["dist/EydiiVerifyNode.js"]
   },
   "keywords": [
     "n8n",
     "n8n-community-node-package",
-    "forge",
+    "eydii",
     "veritera",
     "verification",
     "ai-safety"
   ],
   "dependencies": {
-    "@veritera.ai/forge-verify": "^1.2.0"
+    "@veritera.ai/eydii": "^1.2.0"
   },
   "devDependencies": {
     "typescript": "^5.0.0",

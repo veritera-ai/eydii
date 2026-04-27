@@ -1,11 +1,11 @@
-"""Forge Execute receipt middleware for OpenAI Agents SDK.
+"""EYDII Execute receipt middleware for OpenAI Agents SDK.
 
 Automatically signs and submits receipts when agent tools are invoked.
 
 Usage:
-    from forge_openai import ForgeExecuteGuardrail
+    from eydii_openai import EydiiExecuteGuardrail
 
-    execute_guard = ForgeExecuteGuardrail(
+    execute_guard = EydiiExecuteGuardrail(
         task_id="task_abc...",
         agent_id="finance-agent",
     )
@@ -22,16 +22,16 @@ import logging
 import os
 from typing import Any, Optional
 
-from veritera import Forge, ReceiptSigner
+from veritera import Eydii, EydiiSigner
 
-logger = logging.getLogger("forge_openai.execute")
+logger = logging.getLogger("eydii_openai.execute")
 
 
-class ForgeExecuteGuardrail:
+class EydiiExecuteGuardrail:
     """OpenAI Agents SDK guardrail that emits signed Execute receipts.
 
     Wraps tool invocations via ToolInputGuardrail. Each allowed tool call
-    generates a signed receipt submitted to Forge Execute.
+    generates a signed receipt submitted to EYDII Execute.
     """
 
     def __init__(
@@ -40,13 +40,13 @@ class ForgeExecuteGuardrail:
         agent_id: str,
         api_key: Optional[str] = None,
         signing_key: Optional[str] = None,
-        base_url: str = "https://forge.veritera.ai",
+        base_url: str = "https://id.veritera.ai",
     ):
         self.task_id = task_id
         self.agent_id = agent_id
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
-        self._client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-        self._signer = ReceiptSigner(signing_key=signing_key or key)
+        self._client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+        self._signer = EydiiSigner(signing_key=signing_key or key)
 
     def tool_guardrail(self):
         """Return a ToolInputGuardrail that emits receipts.
@@ -71,7 +71,7 @@ class ForgeExecuteGuardrail:
             # Allow the tool to proceed
             return data.allow()
 
-        return ToolInputGuardrail(guardrail_function=_verify_and_receipt, name="forge_execute_receipt")
+        return ToolInputGuardrail(guardrail_function=_verify_and_receipt, name="eydii_execute_receipt")
 
     def emit_receipt(self, action_type: str) -> dict:
         """Manually emit a receipt for a custom action."""

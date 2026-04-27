@@ -1,6 +1,6 @@
-"""Forge Verify tool for CrewAI agents.
+"""EYDII tool for CrewAI agents.
 
-A CrewAI BaseTool that verifies actions through the Forge /v1/verify API.
+A CrewAI BaseTool that verifies actions through the EYDII /v1/verify API.
 Agents use this tool to check whether an action is allowed before executing it.
 """
 
@@ -13,13 +13,13 @@ from typing import Any, Optional, Type
 
 from crewai.tools import BaseTool
 from pydantic import BaseModel, Field
-from veritera import Forge
+from veritera import Eydii
 
-logger = logging.getLogger("forge_crewai")
+logger = logging.getLogger("eydii_crewai")
 
 
-class ForgeVerifyInput(BaseModel):
-    """Input schema for the Forge Verify tool."""
+class EydiiVerifyInput(BaseModel):
+    """Input schema for the EYDII tool."""
 
     action: str = Field(
         ...,
@@ -34,42 +34,42 @@ class ForgeVerifyInput(BaseModel):
     )
 
 
-class ForgeVerifyTool(BaseTool):
-    """CrewAI tool that verifies agent actions through Forge policies.
+class EydiiVerifyTool(BaseTool):
+    """CrewAI tool that verifies agent actions through EYDII policies.
 
     This inherits from ``crewai.tools.BaseTool`` so it can be passed directly
     to ``Agent(tools=[...])``.
 
     Usage::
 
-        from forge_crewai import ForgeVerifyTool
+        from eydii_crewai import EydiiVerifyTool
 
-        tool = ForgeVerifyTool(policy="finance-controls")
+        tool = EydiiVerifyTool(policy="finance-controls")
         agent = Agent(
             role="Financial Analyst",
             tools=[tool],
         )
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
-        base_url: Forge API endpoint.
-        agent_id: Identifier for this agent in Forge audit logs.
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
+        base_url: EYDII API endpoint.
+        agent_id: Identifier for this agent in EYDII audit logs.
         policy: Default policy to evaluate against.
-        fail_closed: If True (default), deny when Forge API is unreachable.
-        timeout: HTTP timeout in seconds for Forge API calls.
+        fail_closed: If True (default), deny when EYDII API is unreachable.
+        timeout: HTTP timeout in seconds for EYDII API calls.
     """
 
     # --- BaseTool required fields ---
-    name: str = "forge_verify"
+    name: str = "eydii_verify"
     description: str = (
         "Verify an AI agent action against security policies before executing it. "
         "Call this BEFORE performing any sensitive action (payments, emails, deletions, API calls). "
         "Returns APPROVED or DENIED with a reason."
     )
-    args_schema: Type[BaseModel] = ForgeVerifyInput
+    args_schema: Type[BaseModel] = EydiiVerifyInput
 
-    # --- Forge configuration (excluded from the Pydantic schema shown to the LLM) ---
-    _client: Any = None  # Forge client instance, set in __init__
+    # --- EYDII configuration (excluded from the Pydantic schema shown to the LLM) ---
+    _client: Any = None  # EYDII client instance, set in __init__
     _agent_id: str = "crewai-agent"
     _policy: Optional[str] = None
     _fail_closed: bool = True
@@ -77,7 +77,7 @@ class ForgeVerifyTool(BaseTool):
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = "https://forge.veritera.ai",
+        base_url: str = "https://id.veritera.ai",
         agent_id: str = "crewai-agent",
         policy: Optional[str] = None,
         fail_closed: bool = True,
@@ -88,9 +88,9 @@ class ForgeVerifyTool(BaseTool):
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
         if not key:
             raise ValueError(
-                "Forge API key required. Pass api_key= or set VERITERA_API_KEY env var."
+                "EYDII API key required. Pass api_key= or set VERITERA_API_KEY env var."
             )
-        self._client = Forge(
+        self._client = Eydii(
             api_key=key,
             base_url=base_url,
             timeout=timeout,
@@ -101,7 +101,7 @@ class ForgeVerifyTool(BaseTool):
         self._fail_closed = fail_closed
 
     def _run(self, action: str, params: str = "{}") -> str:
-        """Verify an action against Forge policies.
+        """Verify an action against EYDII policies.
 
         This is the method CrewAI's ``BaseTool.run()`` delegates to.
 
@@ -125,18 +125,18 @@ class ForgeVerifyTool(BaseTool):
                 policy=self._policy,
             )
         except Exception as exc:
-            logger.error("Forge verify error: %s", exc)
+            logger.error("EYDII verify error: %s", exc)
             return f"ERROR: Verification unavailable — {exc}"
 
         if result.verified:
-            logger.debug("Forge APPROVED: %s", action)
+            logger.debug("EYDII APPROVED: %s", action)
             return (
                 f"APPROVED: {result.verdict} | "
                 f"proof_id: {result.proof_id} | "
                 f"latency: {result.latency_ms}ms"
             )
 
-        logger.warning("Forge DENIED: %s — %s", action, result.reason)
+        logger.warning("EYDII DENIED: %s — %s", action, result.reason)
         return (
             f"DENIED: {result.reason} | "
             f"proof_id: {result.proof_id} | "

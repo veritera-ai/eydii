@@ -1,11 +1,11 @@
 /**
- * Forge Verify Node for n8n
+ * EYDII Node for n8n
  * =========================
- * Verifies every AI agent action against Forge policies before execution.
+ * Verifies every AI agent action against EYDII policies before execution.
  *
  * Two outputs:
  *   Output 1 ("Allowed") — action passed verification, continue workflow
- *   Output 2 ("Denied")  — action blocked by policy or Forge unreachable (fail-closed)
+ *   Output 2 ("Denied")  — action blocked by policy or EYDII unreachable (fail-closed)
  *
  * Every output item includes proof_id, verdict, reason, and latency_ms
  * for full audit trail visibility.
@@ -18,28 +18,28 @@ import type {
   INodeTypeDescription,
 } from "n8n-workflow";
 import { NodeOperationError } from "n8n-workflow";
-import { ForgeVerify } from "@veritera.ai/forge-verify";
-import type { VerifyResponse } from "@veritera.ai/forge-verify";
+import { EydiiVerify } from "@veritera.ai/eydii";
+import type { VerifyResponse } from "@veritera.ai/eydii";
 
-export class ForgeVerifyNode implements INodeType {
+export class EydiiVerifyNode implements INodeType {
   description: INodeTypeDescription = {
-    displayName: "Forge Verify",
-    name: "forgeVerify",
-    icon: "file:forge.svg",
+    displayName: "EYDII",
+    name: "eydiiVerify",
+    icon: "file:eydii.svg",
     group: ["transform"],
     version: 1,
     subtitle: '={{$parameter["action"]}}',
     description:
-      "Verify AI agent actions against Forge policies before execution. Allowed actions pass through; denied actions are routed separately.",
+      "Verify AI agent actions against EYDII policies before execution. Allowed actions pass through; denied actions are routed separately.",
     defaults: {
-      name: "Forge Verify",
+      name: "EYDII",
     },
     inputs: ["main"],
     outputs: ["main", "main"],
     outputNames: ["Allowed", "Denied"],
     credentials: [
       {
-        name: "forgeApi",
+        name: "eydiiApi",
         required: true,
       },
     ],
@@ -86,7 +86,7 @@ export class ForgeVerifyNode implements INodeType {
         type: "boolean",
         default: true,
         description:
-          "Whether to route to the Denied output when Forge is unreachable. When enabled (recommended), network failures block the action rather than allowing it through unverified.",
+          "Whether to route to the Denied output when EYDII is unreachable. When enabled (recommended), network failures block the action rather than allowing it through unverified.",
       },
     ],
   };
@@ -97,16 +97,16 @@ export class ForgeVerifyNode implements INodeType {
     const denied: INodeExecutionData[] = [];
 
     // Retrieve credentials
-    const credentials = await this.getCredentials("forgeApi");
+    const credentials = await this.getCredentials("eydiiApi");
     if (!credentials?.apiKey) {
       throw new NodeOperationError(
         this.getNode(),
-        "Forge API key is missing. Add your credentials under Settings > Credentials > Forge API.",
+        "EYDII API key is missing. Add your credentials under Settings > Credentials > EYDII API.",
       );
     }
 
     const apiKey = credentials.apiKey as string;
-    const baseUrl = (credentials.baseUrl as string) || "https://forge.veritera.ai";
+    const baseUrl = (credentials.baseUrl as string) || "https://id.veritera.ai";
 
     // Read node parameters (same for all items in this execution)
     const action = this.getNodeParameter("action", 0, "") as string;
@@ -133,8 +133,8 @@ export class ForgeVerifyNode implements INodeType {
       );
     }
 
-    // Initialize Forge client
-    const forge = new ForgeVerify({
+    // Initialize EYDII client
+    const eydii = new EydiiVerify({
       apiKey,
       baseUrl,
       failClosed,
@@ -156,7 +156,7 @@ export class ForgeVerifyNode implements INodeType {
           itemParams = params;
         }
 
-        const result: VerifyResponse = await forge.verifyDecision({
+        const result: VerifyResponse = await eydii.verifyDecision({
           agentId: itemAgentId,
           action: itemAction,
           params: itemParams,
@@ -167,7 +167,7 @@ export class ForgeVerifyNode implements INodeType {
         const outputItem: INodeExecutionData = {
           json: {
             ...items[i].json,
-            forge: {
+            eydii: {
               proof_id: result.proofId,
               verification_id: result.verificationId,
               verdict: result.verdict,
@@ -197,7 +197,7 @@ export class ForgeVerifyNode implements INodeType {
           denied.push({
             json: {
               ...items[i].json,
-              forge: {
+              eydii: {
                 proof_id: "",
                 verification_id: "",
                 verdict: "denied",
@@ -205,7 +205,7 @@ export class ForgeVerifyNode implements INodeType {
                 action,
                 agent_id: agentId,
                 policy: policy || null,
-                reason: `Forge verification error (fail-closed): ${err instanceof Error ? err.message : String(err)}`,
+                reason: `EYDII verification error (fail-closed): ${err instanceof Error ? err.message : String(err)}`,
                 latency_ms: 0,
                 mode: "dpe",
                 audit_id: "",
@@ -218,7 +218,7 @@ export class ForgeVerifyNode implements INodeType {
         } else {
           throw new NodeOperationError(
             this.getNode(),
-            `Forge verification failed for item ${i}: ${err instanceof Error ? err.message : String(err)}`,
+            `EYDII verification failed for item ${i}: ${err instanceof Error ? err.message : String(err)}`,
             { itemIndex: i },
           );
         }

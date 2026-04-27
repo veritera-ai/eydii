@@ -1,7 +1,7 @@
 {
-  "name": "@veritera.ai/forge-mastra",
+  "name": "@veritera.ai/eydii-mastra",
   "version": "0.1.1",
-  "description": "Forge Verify middleware and tools for Mastra — verify every agent action before execution",
+  "description": "EYDII middleware and tools for Mastra — verify every agent action before execution",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -18,15 +18,15 @@
     "build": "tsup src/index.ts --format cjs,esm --dts",
     "prepublishOnly": "npm run build"
   },
-  "keywords": ["mastra", "forge", "veritera", "verification", "ai-safety", "agent"],
+  "keywords": ["mastra", "eydii", "veritera", "verification", "ai-safety", "agent"],
   "author": "Veritera AI <engineering@veritera.ai>",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "https://github.com/veritera-ai/forge-mastra"
+    "url": "https://github.com/veritera-ai/eydii-mastra"
   },
   "dependencies": {
-    "@veritera.ai/forge-verify": "^1.2.0"
+    "@veritera.ai/eydii": "^1.2.0"
   },
   "peerDependencies": {
     "@mastra/core": ">=0.1.0"

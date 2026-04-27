@@ -1,7 +1,7 @@
 {
-  "name": "@veritera.ai/forge-openclaw",
+  "name": "@veritera.ai/eydii-openclaw",
   "version": "1.1.4",
-  "description": "Forge verification skill for OpenClaw agents — verify every action before execution",
+  "description": "EYDII verification skill for OpenClaw agents — verify every action before execution",
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -18,11 +18,11 @@
     "build": "tsup",
     "test": "vitest run"
   },
-  "keywords": ["forge", "veritera", "openclaw", "ai", "verification", "agent", "skill"],
+  "keywords": ["eydii", "veritera", "openclaw", "ai", "verification", "agent", "skill"],
   "author": "Veritera AI <engineering@veritera.ai>",
   "license": "MIT",
   "dependencies": {
-    "@veritera.ai/forge-verify": "^1.2.0"
+    "@veritera.ai/eydii": "^1.2.0"
   },
   "devDependencies": {
     "tsup": "^8.0.0",

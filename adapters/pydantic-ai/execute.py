@@ -1,19 +1,19 @@
-"""Forge Execute receipt middleware for Pydantic AI.
+"""EYDII Execute receipt middleware for Pydantic AI.
 
 Automatically signs and submits receipts when Pydantic AI tools are invoked.
 
 Usage:
-    from forge_pydantic_ai import forge_execute_wrapper
+    from eydii_pydantic_ai import eydii_execute_wrapper
 
     # Wrap a tool to automatically emit receipts
-    @forge_execute_wrapper(task_id="task_abc...", agent_id="finance-agent")
+    @eydii_execute_wrapper(task_id="task_abc...", agent_id="finance-agent")
     async def send_payment(ctx, amount: float, recipient: str) -> str:
         return process_payment(amount, recipient)
 
 Or use the lower-level receipt hook:
-    from forge_pydantic_ai import ForgeExecuteHook
+    from eydii_pydantic_ai import EydiiExecuteHook
 
-    hook = ForgeExecuteHook(task_id="task_abc...", agent_id="finance-agent")
+    hook = EydiiExecuteHook(task_id="task_abc...", agent_id="finance-agent")
     # Call hook.on_tool_use("payment.send") whenever a tool is invoked
 """
 
@@ -26,12 +26,12 @@ import os
 from collections.abc import Callable
 from typing import Any, Optional
 
-from veritera import Forge, ReceiptSigner
+from veritera import Eydii, EydiiSigner
 
-logger = logging.getLogger("forge_pydantic_ai.execute")
+logger = logging.getLogger("eydii_pydantic_ai.execute")
 
 
-class ForgeExecuteHook:
+class EydiiExecuteHook:
     """Hook that emits signed receipts for every tool invocation.
 
     Attach this to your Pydantic AI workflow to automatically track execution.
@@ -48,8 +48,8 @@ class ForgeExecuteHook:
         self.task_id = task_id
         self.agent_id = agent_id
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
-        self._client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-        self._signer = ReceiptSigner(signing_key=signing_key or key)
+        self._client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+        self._signer = EydiiSigner(signing_key=signing_key or key)
 
     def on_tool_use(self, action_type: str) -> dict:
         """Call this when a tool is invoked. Signs and submits a receipt.
@@ -81,7 +81,7 @@ class ForgeExecuteHook:
             return {"error": str(exc)}
 
 
-def forge_execute_wrapper(
+def eydii_execute_wrapper(
     task_id: str,
     agent_id: str,
     api_key: Optional[str] = None,
@@ -91,24 +91,24 @@ def forge_execute_wrapper(
     """Decorator that wraps a Pydantic AI tool to emit Execute receipts.
 
     After the tool executes successfully, a signed receipt is submitted
-    to Forge Execute with the tool name as the action type.
+    to EYDII Execute with the tool name as the action type.
 
     Usage::
 
-        @forge_execute_wrapper(task_id="task_abc...", agent_id="finance-agent")
+        @eydii_execute_wrapper(task_id="task_abc...", agent_id="finance-agent")
         async def send_payment(ctx, amount: float, recipient: str) -> str:
             return process_payment(amount, recipient)
 
     Args:
         task_id: The task identifier for receipt tracking.
         agent_id: The agent identifier for receipt tracking.
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
         signing_key: Key for signing receipts (defaults to api_key).
-        base_url: Forge API endpoint.
+        base_url: EYDII API endpoint.
     """
     key = api_key or os.environ.get("VERITERA_API_KEY", "")
-    client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-    signer = ReceiptSigner(signing_key=signing_key or key)
+    client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+    signer = EydiiSigner(signing_key=signing_key or key)
 
     def decorator(func: Callable) -> Callable:
         tool_name = getattr(func, "__name__", "unknown")

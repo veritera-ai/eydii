@@ -1,12 +1,12 @@
-"""Forge Verify middleware for LangGraph / LangChain.
+"""EYDII middleware for LangGraph / LangChain.
 
-Intercepts every tool call and verifies it against Forge policies before execution.
+Intercepts every tool call and verifies it against EYDII policies before execution.
 
 Usage:
     from langgraph.prebuilt import ToolNode, create_react_agent
-    from forge_langgraph import ForgeVerifyMiddleware
+    from eydii_langgraph import EydiiVerifyMiddleware
 
-    middleware = ForgeVerifyMiddleware(policy="finance-controls")
+    middleware = EydiiVerifyMiddleware(policy="finance-controls")
 
     tool_node = ToolNode(
         [send_payment, read_balance],
@@ -21,7 +21,7 @@ Usage:
 
 __version__ = "0.2.0"
 
-from .middleware import ForgeVerifyMiddleware, forge_verify_tool
-from .execute import ForgeExecuteMiddleware
+from .middleware import EydiiVerifyMiddleware, eydii_verify_tool
+from .execute import EydiiExecuteMiddleware
 
-__all__ = ["ForgeVerifyMiddleware", "forge_verify_tool", "ForgeExecuteMiddleware"]
+__all__ = ["EydiiVerifyMiddleware", "eydii_verify_tool", "EydiiExecuteMiddleware"]

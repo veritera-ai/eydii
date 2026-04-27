@@ -1,13 +1,13 @@
-"""Forge Execute receipt middleware for LangGraph.
+"""EYDII Execute receipt middleware for LangGraph.
 
 **PREVIEW** — Execute receipt submission requires the /v1/execute/receipt
-endpoint, which is available in Forge Enterprise. Contact sales@veritera.ai
+endpoint, which is available in EYDII Enterprise. Contact sales@veritera.ai
 for access. The signing and receipt building works locally regardless.
 
 Usage:
-    from forge_langgraph import ForgeExecuteMiddleware
+    from eydii_langgraph import EydiiExecuteMiddleware
 
-    execute_mw = ForgeExecuteMiddleware(
+    execute_mw = EydiiExecuteMiddleware(
         task_id="task_abc...",
         agent_id="research-agent",
     )
@@ -22,16 +22,16 @@ import logging
 import os
 from typing import Any, Callable, Optional
 
-from veritera import Forge, ReceiptSigner
+from veritera import Eydii, EydiiSigner
 
-logger = logging.getLogger("forge_langgraph.execute")
+logger = logging.getLogger("eydii_langgraph.execute")
 
 
-class ForgeExecuteMiddleware:
+class EydiiExecuteMiddleware:
     """LangGraph middleware that emits signed receipts for every tool call.
 
     Wraps tool execution via ToolNode's wrap_tool_call parameter.
-    Each tool invocation generates a signed receipt submitted to Forge Execute.
+    Each tool invocation generates a signed receipt submitted to EYDII Execute.
     """
 
     def __init__(
@@ -40,13 +40,13 @@ class ForgeExecuteMiddleware:
         agent_id: str,
         api_key: Optional[str] = None,
         signing_key: Optional[str] = None,
-        base_url: str = "https://forge.veritera.ai",
+        base_url: str = "https://id.veritera.ai",
     ):
         self.task_id = task_id
         self.agent_id = agent_id
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
-        self._client = Forge(api_key=key, base_url=base_url, fail_closed=False)
-        self._signer = ReceiptSigner(signing_key=signing_key or key)
+        self._client = Eydii(api_key=key, base_url=base_url, fail_closed=False)
+        self._signer = EydiiSigner(signing_key=signing_key or key)
 
     def wrap_tool_call(self, request: Any, handler: Callable) -> Any:
         """Wrap a LangGraph tool call with receipt emission.

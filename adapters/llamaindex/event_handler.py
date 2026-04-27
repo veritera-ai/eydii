@@ -1,13 +1,13 @@
-"""Forge instrumentation event handler for LlamaIndex.
+"""EYDII instrumentation event handler for LlamaIndex.
 
 Attaches to the LlamaIndex instrumentation dispatcher to audit agent tool calls
-through the Forge /v1/verify API.
+through the EYDII /v1/verify API.
 
 Usage:
-    from forge_llamaindex import ForgeEventHandler
+    from eydii_llamaindex import EydiiEventHandler
     import llama_index.core.instrumentation as instrument
 
-    handler = ForgeEventHandler(policy="finance-controls")
+    handler = EydiiEventHandler(policy="finance-controls")
     dispatcher = instrument.get_dispatcher()
     dispatcher.add_event_handler(handler)
 """
@@ -19,33 +19,33 @@ import logging
 import os
 from typing import Any, Optional
 
-from veritera import Forge
+from veritera import Eydii
 
 from llama_index.core.instrumentation.event_handlers.base import BaseEventHandler
 from llama_index.core.instrumentation.events.base import BaseEvent
 
-logger = logging.getLogger("forge_llamaindex")
+logger = logging.getLogger("eydii_llamaindex")
 
 
-class ForgeEventHandler(BaseEventHandler):
-    """Instrumentation handler that audits agent tool calls through Forge.
+class EydiiEventHandler(BaseEventHandler):
+    """Instrumentation handler that audits agent tool calls through EYDII.
 
     Intercepts AgentToolCallEvent and verifies the tool call. Can optionally
     raise an exception to block execution if the action is denied.
 
     Args:
-        api_key: Forge API key (or set VERITERA_API_KEY env var).
-        base_url: Forge API endpoint.
-        agent_id: Identifier for this agent in Forge audit logs.
+        api_key: EYDII API key (or set VERITERA_API_KEY env var).
+        base_url: EYDII API endpoint.
+        agent_id: Identifier for this agent in EYDII audit logs.
         policy: Policy to evaluate actions against.
-        block_on_deny: If True, raise ValueError when Forge denies an action.
-        fail_closed: If True, block when Forge API is unreachable.
+        block_on_deny: If True, raise ValueError when EYDII denies an action.
+        fail_closed: If True, block when EYDII API is unreachable.
     """
 
     def __init__(
         self,
         api_key: Optional[str] = None,
-        base_url: str = "https://forge.veritera.ai",
+        base_url: str = "https://id.veritera.ai",
         agent_id: str = "llamaindex-agent",
         policy: Optional[str] = None,
         block_on_deny: bool = True,
@@ -53,7 +53,7 @@ class ForgeEventHandler(BaseEventHandler):
     ):
         super().__init__()
         key = api_key or os.environ.get("VERITERA_API_KEY", "")
-        self._client = Forge(
+        self._client = Eydii(
             api_key=key,
             base_url=base_url,
             fail_closed=fail_closed,
@@ -65,12 +65,12 @@ class ForgeEventHandler(BaseEventHandler):
 
     @classmethod
     def class_name(cls) -> str:
-        return "ForgeVerifyEventHandler"
+        return "EydiiVerifyEventHandler"
 
     def handle(self, event: BaseEvent, **kwargs: Any) -> Any:
         """Handle instrumentation events.
 
-        Intercepts tool call events and verifies them through Forge.
+        Intercepts tool call events and verifies them through EYDII.
         """
         # Check if this is a tool call event
         event_type = type(event).__name__
@@ -127,22 +127,22 @@ class ForgeEventHandler(BaseEventHandler):
                 policy=self._policy,
             )
         except Exception as exc:
-            logger.error("Forge event handler error: %s", exc)
+            logger.error("EYDII event handler error: %s", exc)
             if self._fail_closed and self._block_on_deny:
                 raise ValueError(
-                    f"Forge: Action '{tool_name}' blocked — verification unavailable."
+                    f"EYDII: Action '{tool_name}' blocked — verification unavailable."
                 ) from exc
             return None
 
         if result.verified:
-            logger.debug("Forge APPROVED: %s (proof=%s)", tool_name, result.proof_id)
+            logger.debug("EYDII APPROVED: %s (proof=%s)", tool_name, result.proof_id)
             return None
 
         reason = result.reason or "Policy violation"
-        logger.warning("Forge DENIED: %s — %s", tool_name, reason)
+        logger.warning("EYDII DENIED: %s — %s", tool_name, reason)
 
         if self._block_on_deny:
             raise ValueError(
-                f"Forge: Action '{tool_name}' denied — {reason}"
+                f"EYDII: Action '{tool_name}' denied — {reason}"
             )
         return None
