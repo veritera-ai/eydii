@@ -1,0 +1,43 @@
+[project]
+name = "langchain-forge"
+version = "0.2.1"
+description = "Forge Verify + Execute middleware for LangGraph/LangChain — verify tool calls and track executions with cryptographic receipts"
+readme = "README.md"
+license = {text = "MIT"}
+requires-python = ">=3.10"
+authors = [{name = "Veritera AI", email = "engineering@veritera.ai"}]
+keywords = ["veritera", "forge", "langchain", "langgraph", "middleware", "guardrail", "verification"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries",
+]
+dependencies = [
+    "veritera>=0.2.0",
+    "langchain-core>=0.3.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-asyncio>=0.21",
+]
+
+[project.urls]
+Homepage = "https://forge.veritera.ai"
+Documentation = "https://forge.veritera.ai/docs"
+Repository = "https://github.com/veritera-ai/forge-langchain"
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.setuptools.packages.find]
+include = ["forge_langgraph*", "langchain_forge*"]

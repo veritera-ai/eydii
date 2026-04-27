@@ -1,0 +1,39 @@
+{
+  "name": "@veritera.ai/forge-mastra",
+  "version": "0.1.1",
+  "description": "Forge Verify middleware and tools for Mastra — verify every agent action before execution",
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": ["dist"],
+  "scripts": {
+    "build": "tsup src/index.ts --format cjs,esm --dts",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["mastra", "forge", "veritera", "verification", "ai-safety", "agent"],
+  "author": "Veritera AI <engineering@veritera.ai>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/veritera-ai/forge-mastra"
+  },
+  "dependencies": {
+    "@veritera.ai/forge-verify": "^1.2.0"
+  },
+  "peerDependencies": {
+    "@mastra/core": ">=0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "tsup": "^8.0.0",
+    "@mastra/core": "^0.1.0"
+  }
+}

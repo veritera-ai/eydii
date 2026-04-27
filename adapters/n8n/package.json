@@ -1,0 +1,41 @@
+{
+  "name": "@veritera.ai/n8n-nodes-forge",
+  "version": "0.1.1",
+  "description": "Forge Verify nodes for n8n — verify every AI agent action before execution",
+  "license": "MIT",
+  "author": {
+    "name": "Veritera AI",
+    "email": "engineering@veritera.ai"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/veritera-ai/n8n-nodes-forge"
+  },
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "n8n": {
+    "n8nNodesApiVersion": 1,
+    "credentials": ["dist/ForgeCredentials.js"],
+    "nodes": ["dist/ForgeVerifyNode.js"]
+  },
+  "keywords": [
+    "n8n",
+    "n8n-community-node-package",
+    "forge",
+    "veritera",
+    "verification",
+    "ai-safety"
+  ],
+  "dependencies": {
+    "@veritera.ai/forge-verify": "^1.2.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "n8n-workflow": "^1.0.0"
+  },
+  "files": ["dist/**/*"]
+}
