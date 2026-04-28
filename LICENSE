@@ -1,21 +1,74 @@
-MIT License
+Veritera Corporation — Proprietary Evaluation License
 
-Copyright (c) 2026 Veritera Corporation
+Copyright (c) 2026 Veritera Corporation. All rights reserved.
 
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+This repository and its contents are the proprietary intellectual property
+of Veritera Corporation. The source code, documentation, specifications,
+protocols, algorithms, and all associated materials are protected by
+United States and international copyright, patent, and trade secret law.
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+GRANT OF LIMITED EVALUATION RIGHTS
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+Veritera Corporation grants you a limited, non-exclusive, non-transferable,
+revocable license to:
+
+  1. View and read the contents of this repository for evaluation purposes.
+  2. Install and run the published npm package (@veritera.ai/roam) for
+     personal or internal evaluation use.
+  3. Reference the public protocol specification and SDK surface
+     documentation for the purpose of evaluating integration compatibility.
+
+RESTRICTIONS
+
+You may NOT, without prior written authorization from Veritera Corporation:
+
+  1. Copy, reproduce, distribute, sublicense, or redistribute any part of
+     this repository or its contents, in whole or in part.
+  2. Create derivative works based on any part of this repository.
+  3. Use any part of this repository in a competing product or service.
+  4. Reverse-engineer, decompile, or disassemble any compiled or packaged
+     component beyond what is strictly necessary for interoperability as
+     permitted by applicable law.
+  5. Remove, alter, or obscure any copyright, trademark, patent, or other
+     proprietary notices.
+  6. Use the contents of this repository for commercial purposes without
+     a separate commercial license agreement.
+
+PATENT NOTICE
+
+Veritera Corporation has filed provisional patent applications covering
+the trust layer architecture, behavioral intelligence methods, content-blind
+verification systems, and coordination protocols described in and
+implemented by this repository. Use of these methods without a license
+from Veritera Corporation may constitute patent infringement.
+
+TRADEMARKS
+
+EYDII, ROAM, and Veritera are trademarks of Veritera Corporation.
+Use of these marks without authorization is prohibited.
+
+NO WARRANTY
+
+THIS SOFTWARE AND DOCUMENTATION ARE PROVIDED "AS IS" WITHOUT WARRANTY
+OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE
+WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
+NONINFRINGEMENT. IN NO EVENT SHALL VERITERA CORPORATION BE LIABLE FOR
+ANY CLAIM, DAMAGES, OR OTHER LIABILITY ARISING FROM THE USE OF OR
+INABILITY TO USE THIS SOFTWARE.
+
+TERMINATION
+
+This license terminates automatically if you violate any of its terms.
+Upon termination, you must destroy all copies of materials obtained from
+this repository.
+
+GOVERNING LAW
+
+This license is governed by the laws of the State of Delaware, United
+States of America.
+
+CONTACT
+
+For commercial licensing, enterprise deployment, or partnership inquiries:
+  https://veritera.ai
+  legal@veritera.ai
