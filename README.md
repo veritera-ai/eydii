@@ -5,7 +5,7 @@
 </p>
 
 <p align="center">
-  <a href="https://github.com/veritera-ai/eydii/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="https://github.com/veritera-ai/eydii/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-proprietary-111827.svg" alt="Proprietary — Veritera Corporation" /></a>
   <a href="https://www.npmjs.com/package/@veritera.ai/eydii"><img src="https://img.shields.io/npm/v/@veritera.ai/eydii.svg" alt="npm" /></a>
   <a href="https://pypi.org/project/veritera/"><img src="https://img.shields.io/pypi/v/veritera.svg" alt="PyPI" /></a>
   <a href="#framework-adapters"><img src="https://img.shields.io/badge/adapters-10%20frameworks-brightgreen.svg" alt="Adapters" /></a>
@@ -215,9 +215,9 @@ Seven patent applications cover the trust layer architecture, behavioral drift d
 
 ## License
 
-SDKs and framework adapters are released under the [MIT License](LICENSE).
+This repository and its contents are proprietary software of Veritera Corporation. See [LICENSE](LICENSE) for terms.
 
-The EYDII engine is proprietary software of Veritera Corporation.
+
 
 ---
 
