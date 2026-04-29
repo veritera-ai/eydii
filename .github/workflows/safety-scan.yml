@@ -1,0 +1,56 @@
+name: Public Repo Safety Scan
+
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+  safety-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Scan for source code patterns
+        run: |
+          VIOLATIONS=0
+
+          SRC_FILES=$(find . -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" -o -name "*.jsx" \) ! -path "./.github/*" ! -name "*.yml" 2>/dev/null)
+          if [ -n "$SRC_FILES" ]; then
+            echo "::error::Source code files detected — these should not be in the public repo:"
+            echo "$SRC_FILES"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          fi
+
+          IMPORT_FILES=$(grep -rl "^import \|^const .* = require(" --include="*.ts" --include="*.js" . 2>/dev/null)
+          if [ -n "$IMPORT_FILES" ]; then
+            echo "::error::Files with import/require statements detected:"
+            echo "$IMPORT_FILES"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          fi
+
+          SECRET_FILES=$(find . -type f \( -name ".env*" -o -name "credentials*" -o -name "*.pem" -o -name "*.key" \) 2>/dev/null)
+          if [ -n "$SECRET_FILES" ]; then
+            echo "::error::Potential secret files detected:"
+            echo "$SECRET_FILES"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          fi
+
+          SCHEMA_FILES=$(grep -rl "createTable\|drizzle\|prisma\|migration" --include="*.ts" --include="*.js" --include="*.sql" . 2>/dev/null)
+          if [ -n "$SCHEMA_FILES" ]; then
+            echo "::error::Database schema patterns detected:"
+            echo "$SCHEMA_FILES"
+            VIOLATIONS=$((VIOLATIONS + 1))
+          fi
+
+          INTERNAL_PATHS=$(grep -r "VERITERADEV\|/server/\|/daemon/\|/engine/" --include="*.md" --include="*.txt" --include="*.json" . 2>/dev/null | grep -v ".github/workflows" || true)
+          if [ -n "$INTERNAL_PATHS" ]; then
+            echo "::warning::Internal path references detected (review manually):"
+            echo "$INTERNAL_PATHS"
+          fi
+
+          if [ $VIOLATIONS -gt 0 ]; then
+            echo "::error::Safety scan failed — $VIOLATIONS violation(s) found. This public repo should contain documentation only."
+            exit 1
+          fi
+
+          echo "Safety scan passed — no source code or sensitive patterns detected."
