@@ -25,4 +25,4 @@ The EYDII behavioral engine, verification infrastructure, and mathematical proof
 
 ## License
 
-By contributing, you agree that your contributions will be licensed under the MIT License.
+By contributing, you agree that your contributions will be licensed under the terms described in the [LICENSE](./LICENSE) file. All rights reserved by Veritera Corporation.
