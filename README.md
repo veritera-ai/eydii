@@ -35,7 +35,7 @@ It monitors what autonomous systems **do** — action types, timing, frequency, 
 
 ## Where It Matters
 
-- **AI Agents** — Coding agents, research agents, multi-agent organizations across 30+ frameworks
+- **AI Agents** — Coding agents, research agents, multi-agent organizations across all major agent frameworks
 - **Physical AI / Robotics** — Warehouse robots, surgical systems, autonomous vehicles, manufacturing floors
 - **Industrial Autonomous Systems** — Power plants, railway control, water treatment, pharmaceutical manufacturing
 - **Regulated Environments** — HIPAA, ITAR, defense, financial services — where content inspection is forbidden by law
@@ -174,7 +174,7 @@ EYDII ships as a Model Context Protocol (MCP) server for local development tools
 - **Claude Cowork** -- Verify actions across collaborative Claude sessions
 - **Cursor** -- Verify actions from Cursor's AI assistant
 
-See [`docs/mcp-setup.md`](docs/mcp-setup.md) for configuration.
+See documentation at [veritera.ai](https://veritera.ai) for configuration.
 
 ## Repository Structure
 
@@ -183,20 +183,9 @@ eydii/
   sdks/
     javascript/          # @veritera.ai/eydii — install from npm
     python/              # veritera — install from PyPI
-  adapters/
-    langchain/           # LangChain + LangGraph
-    crewai/              # CrewAI
-    openai/              # OpenAI Agents SDK
-    llamaindex/          # LlamaIndex
-    pydantic-ai/         # Pydantic AI
-    agno/                # Agno
-    google-adk/          # Google ADK
-    mastra/              # Mastra
-    n8n/                 # n8n
-    openclaw/            # OpenClaw
 ```
 
-SDKs are distributed via npm and PyPI. Source for SDKs is maintained in private repositories.
+SDKs are distributed via npm and PyPI. Framework adapters are distributed via pip and npm (see table above). Source is maintained in private repositories.
 
 ## Architecture
 
@@ -211,7 +200,7 @@ Seven patent applications cover the trust layer architecture, behavioral drift d
 | **EYDII Platform** | [id.veritera.ai](https://id.veritera.ai) |
 | **ROAM** (Agentic OS) | [github.com/veritera-ai/roam](https://github.com/veritera-ai/roam) |
 | **Veritera Corporation** | [veritera.ai](https://veritera.ai) |
-| **Documentation** | [docs/](docs/) |
+| **Documentation** | [veritera.ai](https://veritera.ai) |
 
 ## License
 
