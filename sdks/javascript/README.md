@@ -41,4 +41,4 @@ Full documentation at [veritera.ai](https://veritera.ai).
 
 ## License
 
-MIT -- see [LICENSE](../../LICENSE).
+Proprietary — see [LICENSE](../../LICENSE). All rights reserved by Veritera Corporation.
